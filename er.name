@@ -1,0 +1,41 @@
+[33mcommit 5d61c16bfaf284a3e2c706b643e1a5e71e79ebf9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: the3rdchild <naufalkholisarrahman@gmail.com>
+Date:   Mon Aug 4 19:19:21 2025 +0000
+
+    Change wrong path after mv pages and assets from ./ to ./public
+
+[33mcommit b4987cd3701876d332c5f6e6878866dd0d627d22[m
+Author: the3rdchild <naufalkholisarrahman@gmail.com>
+Date:   Mon Aug 4 18:45:07 2025 +0000
+
+    Move assets and pages to ./public for firebase live hosting
+
+[33mcommit 327b8648c78fbef3e20f3494516118d6b62b1792[m
+Author: the3rdchild <naufalkholisarrahman@gmail.com>
+Date:   Mon Aug 4 18:28:15 2025 +0000
+
+    update
+
+[33mcommit db8597ca8c2689bfaaa63457e107659560fe477d[m
+Author: the3rdchild <naufalkholisarrahman@gmail.com>
+Date:   Mon Aug 4 18:14:59 2025 +0000
+
+    change
+
+[33mcommit 3c092f4a694b820f2745d9361bdcfface2f354e3[m
+Author: The3rdChild <95857932+the3rdchild@users.noreply.github.com>
+Date:   Tue Aug 5 01:13:14 2025 +0700
+
+    Update README.md
+
+[33mcommit 2d88de6a0cab12cac3f284d68033fd394c2e8a67[m
+Author: the3rdchild <naufalkholisarrahman@gmail.com>
+Date:   Mon Aug 4 18:11:16 2025 +0000
+
+    Add base file(s)
+
+[33mcommit 3ac79efc03dcbe6fe6d5bc983eb8b3d4d990e038[m
+Author: Firebase Studio <noreply@firebase.studio>
+Date:   Thu Jul 31 21:05:39 2025 +0000
+
+    Initialized workspace with Firebase Studio
