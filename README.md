@@ -9,6 +9,8 @@ Within the download you'll find the following directories and files:
 ```
 climbox-project
     ├── assets
+    │   ├── data
+    │   │   ├── thingspeak.js
     │   ├── css
     │   ├── fonts
     │   ├── img
