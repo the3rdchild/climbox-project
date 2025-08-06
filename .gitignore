@@ -4,3 +4,4 @@ package.json
 .firebaserc
 firebase.json
 .idx
+.firebase
