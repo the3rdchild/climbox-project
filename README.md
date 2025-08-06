@@ -36,6 +36,7 @@ climbox-project
    │   │   ├── sign-in.html
    │   │   ├── sign-up.html
    │   │   ├── tables.html
+   │   ├── index.html
    ├── CHANGELOG.md
    ├── gulpfile.mjs
    ├── package.json
