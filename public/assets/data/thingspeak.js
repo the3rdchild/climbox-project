@@ -1,17 +1,21 @@
-function readData() {
-    const url = 'https://api.thingspeak.com/channels/3021276/fields/1.json?api_key=94J2VUTG68TS5RM4&results=2';
-  
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        const feeds = data.feeds.map(feed => `Waktu: ${feed.created_at}, Nilai: ${feed.field1}`).join('<br>');
-        document.getElementById('thingspeak-data').innerHTML = feeds;
-      })
-      .catch(error => {
-        console.error('Error fetching ThingSpeak data:', error);
-        document.getElementById('thingspeak-data').innerText = 'Failed to load data.';
-      });
+export async function fetchThingSpeakData(results = 10) {
+  const url = `https://api.thingspeak.com/channels/3021276/fields/1.json?api_key=94J2VUTG68TS5RM4&results=${results}`;
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+    const feeds = json.feeds;
+
+    // Parse data jadi: { labels: [...], values: [...] }
+    const labels = feeds.map(item => {
+      const d = new Date(item.created_at);
+      return `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+    });
+
+    const values = feeds.map(item => Number(item.field1));
+
+    return { labels, values };
+  } catch (error) {
+    console.error("Gagal ambil data ThingSpeak:", error);
+    return { labels: [], values: [] };
   }
-  
-  // Call the function when the page loads
-  window.onload = readData;
+}
