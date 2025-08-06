@@ -2,6 +2,10 @@
 
 /home/user/climbox-project/assets- `npm i material-dashboard`
 
+`firebase emulators:start --only hosting`
+
+Local server: `http://127.0.0.1:5000`
+
 ## File Structure
 
 Within the download you'll find the following directories and files:
