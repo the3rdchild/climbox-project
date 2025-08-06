@@ -1,5 +1,7 @@
 export async function fetchThingSpeakData(results = 10) {
-  const url = `https://api.thingspeak.com/channels/3021276/fields/1.json?api_key=94J2VUTG68TS5RM4&results=${results}`;
+  const url = `https://api.thingspeak.com/channels/3028398/fields/1.json?api_key=UM2UO0PTRDKF9KNX&results=${results}`;
+  //dari arpan// https://api.thingspeak.com/channels/3021276/fields/1.json?api_key=94J2VUTG68TS5RM4&results=
+  //punya saya sim: https://api.thingspeak.com/channels/3028398/fields/1.json?api_key=UM2UO0PTRDKF9KNX&results=
   try {
     const res = await fetch(url);
     const json = await res.json();

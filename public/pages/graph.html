@@ -234,7 +234,7 @@
     <div class="col-lg-4 col-md-6 mt-4 mb-4"></div>
     <div class="card ">
       <div class="card-body">
-        <h6 class="mb-0 "> Sensor Thingspeak </h6>
+        <h6 class="mb-0 "> Sensor Thingspeak Test</h6>
         <!-- <p class="text-sm "> (<span class="font-weight-bolder">+15%</span>) increase in today sales. </p> -->
         <div class="pe-2">
           <div class="chart">
@@ -339,7 +339,8 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module">
-    import { fetchThingSpeakData } from "../assets/data/thingspeak.js";
+    import { getSimulatedData } from "../assets/data/sim.js"; //simulate
+    //thingspeak: import { fetchThingSpeakData } from "../assets/data/thingspeak.js"; //thingspeak
   
     const ctx = document.getElementById("chart-line").getContext("2d");
   
@@ -366,7 +367,8 @@
     });
   
     async function updateChart() {
-      const { labels, values } = await fetchThingSpeakData(10);
+      //const { labels, values } = await fetchThingSpeakData(10); //thingspeak
+      const { labels, values } = await getSimulatedData(10); //sim
       chart.data.labels = labels;
       chart.data.datasets[0].data = values;
       chart.update();
