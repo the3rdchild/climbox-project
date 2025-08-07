@@ -1,15 +1,39 @@
-## Quick start
+# ClimBox: Ocean and Freshwater Monitoring & Management Tool
 
-/home/user/climbox-project/
-`npm i`
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Firebase Hosting](https://img.shields.io/badge/Hosted%20on-Firebase-orange?style=flat-square)](https://firebase.google.com/products/hosting)
 
-Install Firebase CLI	`npm install -g firebase-tools`
-Init Hosting	`firebase init hosting`
-Preview locally	`firebase emulators:start --only hosting`
-Open browser	`http://127.0.0.1:5000`
+ClimBox is an innovative solution designed to support the preservation of marine and freshwater ecosystems through technology-driven data monitoring and management. It provides accurate and continuous environmental insights, making it an ideal tool for researchers, coastal communities, and conservation organizations.
 
-## Firebase Hosting Json Guide
-```js
+---
+
+## Quick Start
+
+```bash
+# Navigate to your project folder
+cd /home/user/climbox-project/
+
+# Install dependencies
+npm i
+
+# Install Firebase CLI globally
+npm install -g firebase-tools
+
+# Initialize Firebase Hosting
+firebase init hosting
+
+# Preview the site locally
+firebase emulators:start --only hosting
+
+# Open in browser
+http://127.0.0.1:5000
+```
+
+---
+
+## Firebase Hosting JSON Guide
+
+```json
 {
   "hosting": {
     "public": "public",
@@ -28,38 +52,44 @@ Open browser	`http://127.0.0.1:5000`
 }
 ```
 
-## File Structure
+---
 
-Within the download you'll find the following directories and files:
+## Project File Structure
 
 ```
 climbox-project
-   ├── public
-   │   ├── assets
-   │   │   ├── data
-   │   │   │   ├── thingspeak.js
-   │   │   ├── css
-   │   │   ├── fonts
-   │   │   ├── img
-   │   │   ├── js
-   │   │   │   ├── core
-   │   │   │   ├── plugins
-   │   │   │   └── material-dashboard.js
-   │   │   │   └── material-dashboard.js.map
-   │   │   │   └── material-dashboard.min.js
-   │   │   └── scss
-   │   │       ├── material-dashboard
-   │   │       └── material-dashboard.scss
-   │   ├── pages
-   │   │   ├── dashboard.html
-   │   │   ├── map.html
-   │   │   ├── notifications.html
-   │   │   ├── profile.html
-   │   │   ├── sign-in.html
-   │   │   ├── sign-up.html
-   │   │   ├── tables.html
-   │   ├── index.html
-   ├── .gitignore
-   ├── gulpfile.mjs
-   ├── README.md
+├── public
+│   ├── assets
+│   │   ├── data
+│   │   │   └── thingspeak.js
+│   │   ├── css
+│   │   ├── fonts
+│   │   ├── img
+│   │   ├── js
+│   │   │   ├── core
+│   │   │   ├── plugins
+│   │   │   ├── material-dashboard.js
+│   │   │   ├── material-dashboard.js.map
+│   │   │   └── material-dashboard.min.js
+│   │   └── scss
+│   │       ├── material-dashboard
+│   │       └── material-dashboard.scss
+│   ├── pages
+│   │   ├── dashboard.html
+│   │   ├── map.html
+│   │   ├── notifications.html
+│   │   ├── profile.html
+│   │   ├── sign-in.html
+│   │   ├── sign-up.html
+│   │   └── tables.html
+│   └── index.html
+├── .gitignore
+├── gulpfile.mjs
+├── README.md
 ```
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](https://opensource.org/licenses/MIT) file for details.
