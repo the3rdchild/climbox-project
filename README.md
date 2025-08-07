@@ -16,40 +16,6 @@ cd /home/user/climbox-project/
 # Install dependencies
 npm i
 
-# Install Firebase CLI globally
-npm install -g firebase-tools
-
-# Initialize Firebase Hosting
-firebase init hosting
-
-# Preview the site locally
-firebase emulators:start --only hosting
-
-# Open in browser
-http://127.0.0.1:5000
-```
-
----
-
-## Firebase Hosting JSON Guide
-
-```json
-{
-  "hosting": {
-    "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
-}
 ```
 
 ---
