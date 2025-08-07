@@ -3,9 +3,30 @@
 /home/user/climbox-project/
 `npm i`
 
-`firebase emulators:start --only hosting`
+Install Firebase CLI	`npm install -g firebase-tools`
+Init Hosting	`firebase init hosting`
+Preview locally	`firebase emulators:start --only hosting`
+Open browser	`http://127.0.0.1:5000`
 
-Local server: `http://127.0.0.1:5000`
+## Firebase Hosting Json Guide
+```js
+{
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
+```
 
 ## File Structure
 
