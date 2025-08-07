@@ -5,3 +5,4 @@ package.json
 firebase.json
 .idx
 .firebase
+firebase-debug.log
