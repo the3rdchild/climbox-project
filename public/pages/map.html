@@ -222,7 +222,148 @@
       </div>
     </nav>
     <!-- End Navbar -->
-    <div class="container-fluid py-2">
+
+    <!-- Main Content -->
+    <div class="container-fluid px-2 px-md-4" style="height:100vh;">
+      <div class="row h-100">
+        <!-- Map (6/12) -->
+        <div class="col-12 col-xl-6 h-100 p-0">
+          <div id="map" style="width:100%; height:90%;"></div>
+        </div>
+        <!-- Chart + list (6/12) -->
+        <div class="col-12 col-xl-6 h-50 d-flex flex-column">
+          <!-- Chart -->
+          <span class="font-weight-bold">Pulau Komodo</span>
+          <div class="flex-grow-1 p-3">
+            <canvas id="chart" style="width:100%; height:100%;"></canvas>
+          </div>
+          <!-- List lokasi di bawah chart -->
+          <div class="p-3 border-top" style="background:#f8f9fa;">
+            <h6>Daftar Lokasi Sensor</h6>
+            <ul id="location-list" class="list-group list-group-flush">
+              <!-- akan diisi via JavaScript -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Leaflet & Chart.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script type="module">
+      import { graphData } from '../assets/data/graph-map.js';
+    
+      // Inisialisasi Chart.js (sama seperti sebelumnya)…
+      const ctx = document.getElementById('chart').getContext('2d');
+      const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [], // nanti diisi lewat updateChart
+    datasets: [
+      {
+        label: 'SST',
+        data: [],
+        borderColor: 'blue',
+        fill: false,
+      },
+      {
+        label: 'Heat Stress',
+        data: [],
+        borderColor: 'orange',
+        fill: false,
+      },
+      {
+        label: 'Threshold',
+        data: [],
+        borderColor: 'red',
+        borderDash: [5, 5],
+        fill: false,
+        pointRadius: 0, // biar titik merah ga kelihatan
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: {
+        min: 1,
+        max: 40,
+        title: {
+          display: true,
+          text: 'SST (°C)'
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Date'
+        }
+      }
+    }
+  }
+});
+    
+function updateChart(data) {
+  chart.data.labels = data.map(d => d.date);
+  chart.data.datasets[0].data = data.map(d => d.sst);
+  chart.data.datasets[1].data = data.map(d => d.heatStress);
+  chart.data.datasets[2].data = Array(data.length).fill(30); // garis threshold tetap di 30
+  chart.update();
+}
+
+    
+      // Data lokasi simulasi
+      const locations = [
+        {
+          id: 'Komodo',
+          name: 'Pulau Komodo',
+          coord: [-8.525, 119.501],
+          country: 'Indonesia'
+        }
+      ];
+    
+      // Inisialisasi Leaflet
+      const map = L.map('map').setView([-8.525,119.501], 6);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        attribution:'&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    
+      // Buat marker & event
+      locations.forEach(loc => {
+        const mk = L.marker(loc.coord).addTo(map);
+        mk.bindPopup(`<strong>${loc.name}</strong><br><small>${loc.country}</small>`);
+    
+        mk.on('click', () => {
+          updateChart(graphData);
+          renderLocationList(locations);
+        });
+      });
+    
+      // Render daftar lokasi
+      function renderLocationList(locs) {
+        const ul = document.getElementById('location-list');
+        ul.innerHTML = '';
+        locs.forEach(loc => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.textContent = loc.name;
+          li.onclick = () => updateChart(graphData);
+          ul.appendChild(li);
+        });
+      }
+    
+      // Inisialisasi chart & list saat load
+      updateChart(graphData);
+      renderLocationList(locations);
+    </script>
+            
+    <!-- Main Content end -->
+
+    <!-- Vector Map -->
+    <!-- <div class="container-fluid py-2">
       <div class="row min-vh-80">
         <div class="col-12">
           <div class="card h-100">
@@ -236,7 +377,9 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
+      <!--- Vector Map end-->
+
       <!-- <footer class="footer py-4  ">
         <div class="container-fluid">
           <div class="row align-items-center justify-content-lg-between">
