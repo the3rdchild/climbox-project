@@ -1,7 +1,7 @@
 ## Quick start
 
 /home/user/climbox-project/
-`npm i material-dashboard`
+`npm i`
 
 `firebase emulators:start --only hosting`
 
