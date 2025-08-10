@@ -1,0 +1,132 @@
+[
+  {
+    "id": "DUVbCK9acxH63XWMP6V7",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 31.32,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849129,
+      "_nanoseconds": 193000000
+    }
+  },
+  {
+    "id": "EAebmKfUK8Qd6Qc2ix7N",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 30.42,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849130,
+      "_nanoseconds": 440000000
+    }
+  },
+  {
+    "id": "ejaluz5zYrZDnbnT5OvH",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 32.03,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849131,
+      "_nanoseconds": 60000000
+    }
+  },
+  {
+    "id": "0oD2YgIgBN2sPfgt5cAx",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 30.27,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849131,
+      "_nanoseconds": 659000000
+    }
+  },
+  {
+    "id": "B5PUNBmMQkYFDoVwA6rd",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 29.23,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849132,
+      "_nanoseconds": 582000000
+    }
+  },
+  {
+    "id": "jOVQKvZ7z7MtRN20jsiJ",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 30.31,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849133,
+      "_nanoseconds": 199000000
+    }
+  },
+  {
+    "id": "iSRPlPCGRyeS0TGf8buG",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 29.61,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849133,
+      "_nanoseconds": 793000000
+    }
+  },
+  {
+    "id": "J2PHc2aDncuoHq8qabxG",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 28.89,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849134,
+      "_nanoseconds": 382000000
+    }
+  },
+  {
+    "id": "LkJXEprkc8RAccGeFsVB",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 29.27,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849134,
+      "_nanoseconds": 990000000
+    }
+  },
+  {
+    "id": "IMqDSqHaYOUKPhkRGg5S",
+    "locationId": "pulau_komodo",
+    "sensorId": "komodo_sst_01",
+    "sensorType": "sst",
+    "value": 32.11,
+    "unit": "°C",
+    "source": "sim",
+    "timestamp": {
+      "_seconds": 1754849135,
+      "_nanoseconds": 603000000
+    }
+  }
+]

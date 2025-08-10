@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const admin = require("firebase-admin");
+const { appendToCache } = require('../public/services/cacheWriter');
 
 const app = express();
 app.use(cors());
@@ -79,15 +80,36 @@ async function checkThresholdAndNotify(entry) {
 app.post("/ingest", async (req, res) => {
   try {
     const payload = req.body;
+
     if (!payload.locationId || !payload.sensorId || !payload.sensorType || payload.value === undefined) {
       return res.status(400).json({ error: "missing required fields" });
     }
 
-    const added = await addSensorData(payload);
-    // run threshold check asynchronously (no need to await for client)
+    // allow custom timestamp (e.g., from mock script) or fallback to now
+    const timestamp = payload.timestamp
+      ? new Date(payload.timestamp)
+      : new Date();
+
+    // Save to Firestore
+    const docRef = await db.collection("sensorData").add({
+      locationId: payload.locationId,
+      sensorId: payload.sensorId,
+      sensorType: payload.sensorType,
+      value: payload.value,
+      unit: payload.unit || null,
+      source: payload.source || "sim",
+      timestamp
+    });
+
+    // Save to Local Cache
+    appendToCache({ id: docRef.id, ...payload, timestamp });
+
+    // Threshold check
+    const added = { id: docRef.id, ...payload, timestamp };
     checkThresholdAndNotify(added).catch(err => console.error(err));
 
-    res.json({ ok: true, id: added.id });
+    res.status(200).json({ ok: true, id: docRef.id });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "server_error" });
@@ -100,3 +122,4 @@ app.get("/", (req, res) => res.send("ClimBox backend running"));
 // start server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Backend listening on http://localhost:${PORT}`));
+
