@@ -28,6 +28,9 @@ climbox-project
 │   ├── assets
 │   │   ├── data
 │   │   │   └── thingspeak.js
+│   │   │   ├── graph-map-template.js
+│   │   │   ├── graph-map.js
+│   │   │   ├── sim.js
 │   │   ├── css
 │   │   ├── fonts
 │   │   ├── img
@@ -42,6 +45,7 @@ climbox-project
 │   │       └── material-dashboard.scss
 │   ├── pages
 │   │   ├── dashboard.html
+│   │   ├── graph.html
 │   │   ├── map.html
 │   │   ├── notifications.html
 │   │   ├── profile.html
