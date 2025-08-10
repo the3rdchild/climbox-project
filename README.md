@@ -57,8 +57,8 @@ climbox-project
 │   │   ├── package.json
 │   │   └── serviceAccount.json
 │   └── services
-│   │   ├── auth-template.js
-│   │   └── firestore-template.js
+│   │   ├── auth.js
+│   │   └── firestore.js
 │   │   └── sensors.js
 │   │   └── notifications.js
 │   │   └── users.js
