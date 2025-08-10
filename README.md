@@ -52,6 +52,9 @@ climbox-project
 │   │   ├── sign-in.html
 │   │   ├── sign-up.html
 │   │   └── tables.html
+│   └── services
+│   │   ├── auth.js
+│   │   └── firestore.js
 │   └── index.html
 ├── .gitignore
 ├── gulpfile.mjs
