@@ -8,3 +8,4 @@ firebase-debug.log
 db-notes.txt
 firestore.js
 auth.js
+serviceAccount.json
