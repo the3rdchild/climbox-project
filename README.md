@@ -24,13 +24,6 @@ npm i
 
 ```
 climbox-project
-├── backend
-│   ├── services
-│   │   └── firestore.js
-│   ├── export_history.js
-│   ├── index.js
-│   ├── package.json
-│   └── serviceAccount.json
 ├── public
 │   ├── assets
 │   │   ├── data
@@ -59,9 +52,10 @@ climbox-project
 │   │   ├── sign-in.html
 │   │   ├── sign-up.html
 │   │   └── tables.html
+│   ├── data
+│   │   ├── sensorData_2025-08-10.json
 │   └── services
 │   │   ├── auth.js
-│   │   ├── cacheWriter.js
 │   │   └── firestore.js
 │   │   └── sensors.js
 │   │   └── notifications.js
