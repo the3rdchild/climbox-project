@@ -20,6 +20,43 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+
+
+  <style>
+    body { background:#f0f3f6; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    .card { border: 0; border-radius: 10px; box-shadow: 0 2px 6px rgba(12,20,28,0.06); }
+    .card .small-chip { font-size: 0.7rem; padding: 0.2rem 0.45rem; border-radius: 999px; background: rgba(255,255,255,0.7); }
+    /* custom card colors */
+    .card-satellite { background: linear-gradient(180deg,#d9f46b,#bfe64f); color:#0b1a13; }
+    .card-buoy { background: linear-gradient(180deg,#c9e6ff,#1976d2); color:#fff; }
+    .card-alert { background: linear-gradient(180deg, #ffecd2, #fcb69f); }
+    .card-wind { background: linear-gradient(180deg, #a8edea, #d7d6fe); color:#21303a; }
+
+    /* small visuals */
+    .bar-strip { display:flex; gap:4px; margin-top:5rem; }
+    .bar-strip > div { height:8px; border-radius:3px; flex:1; }
+    .chip-live { background:#e6f7ff; color:#036; font-weight:700; padding: .25rem .5rem; border-radius:999px;   justify-content: center; align-items: center; }
+
+    /* responsive tweaks */
+    .card .title { font-weight:700; font-size:.75rem; letter-spacing:.04em; }
+    .big-n { font-size:2.25rem; font-weight:800; line-height:1; }
+    .muted { color: #252525; font-size:.85rem; }
+
+    /* donut center text */
+    .donut-center { font-weight:700; font-size:1rem; text-align:center; }
+
+    .responsive-chart {
+  position: relative;
+  aspect-ratio: 16 / 8.8;
+}
+
+@media (max-width: 768px) {
+  .responsive-chart {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+  </style>
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -115,7 +152,7 @@
       <div class="container-fluid py-1 px-3">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="../pages/dashboard.html">Home</a></li>
+            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="../pages/map.html">Map</a></li>
             <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Tables</li>
           </ol>
         </nav>
@@ -212,7 +249,7 @@
             <!--Notification end -->
             
             <li class="nav-item d-flex align-items-center">
- <a href="sign-in.html" class="nav-link text-body font-weight-bold px-0">
+                <a href="sign-in.html" class="nav-link text-body font-weight-bold px-0">
                 <i class="material-symbols-rounded">account_circle</i>
               </a>
             </li>
@@ -221,106 +258,295 @@
       </div>
     </nav>
     <!-- End Navbar -->
+
     <!-- Main -->
-    <div class="col-lg-4 col-md-6 mt-4 mb-4"></div>
-    <div class="card ">
-      <div class="card-body">
-        <h6 class="mb-0 "> Sensor Thingspeak Test</h6>
-        <!-- <p class="text-sm "> (<span class="font-weight-bolder">+15%</span>) increase in today sales. </p> -->
-        <div class="pe-2">
-          <div class="chart">
-            <canvas id="chart-line" class="chart-canvas" height="170"></canvas>
-          </div>
-        </div>
-        <hr class="dark horizontal">
-        <div class="d-flex ">
-          <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
-          <p class="mb-0 text-sm"> updated every 15s </p>
-        </div>
+    <div class="row h-100">
+      <!-- Map (6/12) -->
+      <div class="col-12 col-xl-6 h-90 p-0">
+        <div id="map" style="width:100%; height:100%;"></div>
+      </div>
+      
+      <!-- Chart + list (6/12) -->
+      <div class="col-12 col-xl-6 h-50 d-flex flex-column">
+        <!-- Chart -->
+        <span class="font-weight-bold" style="margin-left: 20px; text-align: center;">
+          Pulau Komodo
+        </span>
+        <div class="flex-grow-1 p-3 responsive-chart">
+          <canvas id="chart" style="width:100%; height:100%;"></canvas>
+        </div>        
+        <!-- List lokasi di bawah chart -->
       </div>
     </div>
     <!-- End Main -->
-<!--
-  <div class="fixed-plugin">
-    <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
-      <i class="material-symbols-rounded py-2">settings</i>
-    </a>
-    <div class="card shadow-lg">
-      <div class="card-header pb-0 pt-3">
-        <div class="float-start">
-          <h5 class="mt-3 mb-0">Material UI Configurator</h5>
-          <p>See our dashboard options.</p>
-        </div>
-        <div class="float-end mt-4">
-          <button class="btn btn-link text-dark p-0 fixed-plugin-close-button">
-            <i class="material-symbols-rounded">clear</i>
-          </button>
-        </div>
 
+        <!-- Grid graph -->
+      <div class="container-fluid py-4">
+      <div class="row g-3">
+      <!-- Satellite -->
+      <div class="col-12 col-md-4 col-lg-2">
+        <div class="card card-satellite h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="title">SATELLITE OBSERVATION</div>
+                <div class="big-n">29.3°C</div>
+              </div>
+              <div class="small-chip">Updated daily</div>
+            </div>
+
+            <hr style="border-color: rgba(0,0,0,0.06)">
+
+            <div class="row">
+              <div class="col-6">
+                <div class="muted">SURFACE TEMP</div>
+                <div class="h6 mb-0">29.3°C</div>
+              </div>
+              <div class="col-6">
+                <div class="muted">HISTORICAL MAX</div>
+                <div class="h6 mb-0">27.3°C</div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <div class="muted">SST ANOMALY</div>
+              <div class="fw-bold">+2.1°C</div>
+            </div>
+
+            <div class="bar-strip" aria-hidden="true">
+              <div style="background:#1b7e5a;"></div>
+              <div style="background:#2aa84f;"></div>
+              <div style="background:#ffd166;"></div>
+              <div style="background:#ffb545;"></div>
+              <div style="background:#d84f4f;"></div>
+              <div style="background:#6b1818;"></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <hr class="horizontal dark my-1">
-      <div class="card-body pt-sm-3 pt-0">
 
-        <div>
-          <h6 class="mb-0">Sidebar Colors</h6>
-        </div>
-        <a href="javascript:void(0)" class="switch-trigger background-color">
-          <div class="badge-colors my-2 text-start">
-            <span class="badge filter bg-gradient-primary" data-color="primary" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-dark active" data-color="dark" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-info" data-color="info" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-success" data-color="success" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-warning" data-color="warning" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-danger" data-color="danger" onclick="sidebarColor(this)"></span>
-          </div>
-        </a>
+      <!-- Buoy -->
+      <div class="col-12 col-md-4 col-lg-2">
+        <div class="card card-buoy h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div class="title text-dark">BUOY OBSERVATION</div>
+              <div class="small-chip text-dark">LIVE</div>
+            </div>
 
-        <div class="mt-3">
-          <h6 class="mb-0">Sidenav Type</h6>
-          <p class="text-sm">Choose between different sidenav types.</p>
-        </div>
-        <div class="d-flex">
-          <button class="btn bg-gradient-dark px-3 mb-2" data-class="bg-gradient-dark" onclick="sidebarType(this)">Dark</button>
-          <button class="btn bg-gradient-dark px-3 mb-2 ms-2" data-class="bg-transparent" onclick="sidebarType(this)">Transparent</button>
-          <button class="btn bg-gradient-dark px-3 mb-2  active ms-2" data-class="bg-white" onclick="sidebarType(this)">White</button>
-        </div>
-        <p class="text-sm d-xl-none d-block mt-2">You can change the sidenav type just on desktop view.</p>
+            <div class="mt-2">
+              <div class="big-n h3 mb-0 bold">29.1°C</div>
+              <div class="muted">Surface Temp < 1m</div>
+            </div>
 
-        <div class="mt-3 d-flex">
-          <h6 class="mb-0">Navbar Fixed</h6>
-          <div class="form-check form-switch ps-0 ms-auto my-auto">
-            <input class="form-check-input mt-1 ms-auto" type="checkbox" id="navbarFixed" onclick="navbarFixed(this)">
-          </div>
-        </div>
-        <hr class="horizontal dark my-3">
-        <div class="mt-2 d-flex">
-          <h6 class="mb-0">Light / Dark</h6>
-          <div class="form-check form-switch ps-0 ms-auto my-auto">
-            <input class="form-check-input mt-1 ms-auto" type="checkbox" id="dark-version" onclick="darkMode(this)">
+            <div class="d-flex justify-content-between">
+
+            </div>
+          
+            <hr style="border-color: rgba(255,255,255,0.14)">
+
+            <div class="mt-2">
+              <div class="h2 mb-0">29.2°C</div>
+              <div class="muted">Temp at 5m</div>
+            </div>
+
+            <div class="d-flex justify-content-center align-items-end" style="height:100px; margin-top: 25px;">
+              <!-- simple buoy illustration -->
+              <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="buoy">
+                <rect x="10" y="40" width="100" height="10" rx="4" fill="rgba(255,255,255,0.08)"></rect>
+                <rect x="54" y="18" width="12" height="22" rx="2" fill="#fff"></rect>
+                <circle cx="60" cy="46" r="10" fill="#fff" opacity="0.9"></circle>
+              </svg>
+            </div>
           </div>
         </div>
-        <hr class="horizontal dark my-sm-4">
-        <a class="btn bg-gradient-info w-100" href="https://www.creative-tim.com/product/material-dashboard-pro">Free Download</a>
-        <a class="btn btn-outline-dark w-100" href="https://www.creative-tim.com/learning-lab/bootstrap/overview/material-dashboard">View documentation</a>
-        <div class="w-100 text-center">
-          <a class="github-button" href="https://github.com/creativetimofficial/material-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star creativetimofficial/material-dashboard on GitHub">Star</a>
-          <h6 class="mt-3">Thank you for sharing!</h6>
-          <a href="https://twitter.com/intent/tweet?text=Check%20Material%20UI%20Dashboard%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23bootstrap5&amp;url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fsoft-ui-dashboard\" class=\"btn btn-dark mb-0 me-2\" target=\"_blank\">
-            <i class=\"fab fa-twitter me-1\" aria-hidden=\"true\"></i> Tweet
-          </a>
-          <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/material-dashboard\" class=\"btn btn-dark mb-0 me-2\" target=\"_blank\">
-            <i class=\"fab fa-facebook-square me-1\" aria-hidden=\"true\"></i> Share
-          </a>
+      </div>
+
+      <!-- Heat Stress Alert -->
+      <div class="col-12 col-md-4 col-lg-2">
+        <div class="card card-alert h-100">
+          <div class="card-body">
+            <div class="title text-dark">HEAT STRESS ALERT LEVEL</div>
+
+            <div class="d-flex align-items-center mt-3">
+              <!-- donut SVG -->
+              <svg width="300" height="150" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle r="15.9155" cx="21" cy="21" fill="transparent" stroke="#f0f4f8" stroke-width="8"></circle>
+                <circle r="15.9155" cx="21" cy="21" fill="transparent" stroke="#ffd166" stroke-width="8" stroke-dasharray="25 75" stroke-dashoffset="25" transform="rotate(-90 21 21)"></circle>
+                <circle r="15.9155" cx="21" cy="21" fill="transparent" stroke="#ff6b6b" stroke-width="8" stroke-dasharray="20 80" stroke-dashoffset="-5" transform="rotate(-50 21 21)"></circle>
+              </svg>
+            </div> 
+            <div class="d-flex align-items-center mt-3">
+              <div class="ms-3">
+                <div class="h6 mb-0">ALERT</div>
+                <div class="h3 display-6 fw-bold">LEVEL 2</div>
+                <div class="muted">Last data received 1 day ago</div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Wind -->
+      <div class="col-12 col-md-4 col-lg-2">
+        <div class="card card-wind h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="title">WIND</div>
+              <div class="small-chip">LIVE</div>
+            </div>
+
+            <div class="mt-2">
+              <div class="big-n">8.6 <small class="muted">km/h</small></div>
+              <div class="muted">Direction: 108°</div>
+            </div>
+
+            <hr>
+
+            <div class="d-flex">
+              <div>
+                <div class="muted">WAVES</div>
+                <div class="mb-1">Height 0.7 m</div>
+                <div class="muted">Period 8s</div>
+              </div>
+              <div class="ms-auto">
+                <!-- wave avatar -->
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" role="img" aria-label="waves">
+                  <path d="M2 12c4-4 6 0 10 0s6-4 10-4" stroke="#7f8c8d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div class="muted" style="margin-top: 50px;">
+              Last data received -88 sec ago. Updated hourly
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Satellite -->
+      <div class="col-12 col-md-4 col-lg-2">
+        <div class="card card-satellite h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="title">SATELLITE OBSERVATION</div>
+                <div class="big-n">29.3°C</div>
+              </div>
+              <div class="small-chip">Updated daily</div>
+            </div>
+
+            <hr style="border-color: rgba(0,0,0,0.06)">
+
+            <div class="row">
+              <div class="col-6">
+                <div class="muted">SURFACE TEMP</div>
+                <div class="h6 mb-0">29.3°C</div>
+              </div>
+              <div class="col-6">
+                <div class="muted">HISTORICAL MAX</div>
+                <div class="h6 mb-0">27.3°C</div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <div class="muted">SST ANOMALY</div>
+              <div class="fw-bold">+2.1°C</div>
+            </div>
+
+            <div class="bar-strip" aria-hidden="true">
+              <div style="background:#1b7e5a;"></div>
+              <div style="background:#2aa84f;"></div>
+              <div style="background:#ffd166;"></div>
+              <div style="background:#ffb545;"></div>
+              <div style="background:#d84f4f;"></div>
+              <div style="background:#6b1818;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buoy -->
+      <div class="col-12 col-md-4 col-lg-2">
+        <div class="card card-buoy h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <div class="title text-dark">BUOY OBSERVATION</div>
+              <div class="small-chip text-dark">LIVE</div>
+            </div>
+
+            <div class="mt-2">
+              <div class="big-n h3 mb-0 bold">29.1°C</div>
+              <div class="muted">Surface Temp < 1m</div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+
+            </div>
+          
+            <hr style="border-color: rgba(255,255,255,0.14)">
+
+            <div class="mt-2">
+              <div class="h2 mb-0">29.2°C</div>
+              <div class="muted">Temp at 5m</div>
+            </div>
+
+            <div class="d-flex justify-content-center align-items-end" style="height:100px; margin-top: 25px;">
+              <!-- simple buoy illustration -->
+              <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="buoy">
+                <rect x="10" y="40" width="100" height="10" rx="4" fill="rgba(255,255,255,0.08)"></rect>
+                <rect x="54" y="18" width="12" height="22" rx="2" fill="#fff"></rect>
+                <circle cx="60" cy="46" r="10" fill="#fff" opacity="0.9"></circle>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+    </div>
+  </div>
+<!--
+Graph konten
+-->
+<footer class="footer py-4  ">
+  <div class="container-fluid">
+    <div class="row align-items-center justify-content-lg-between">
+      <div class="col-lg-6 mb-lg-0 mb-4">
+        <div class="copyright text-center text-sm text-muted text-lg-start">
+          © <script>
+            document.write(new Date().getFullYear())
+          </script>,
+          made with <i class="fa fa-heart"></i> by
+          <a href=" " class="font-weight-bold" target="_blank">ClimBox</a>
+          for a better climate.
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <ul class="nav nav-footer justify-content-center justify-content-lg-end">
+          <li class="nav-item">
+            <a href=" " class="nav-link text-muted" target="_blank">Creative Tim</a>
+          </li>
+          <li class="nav-item">
+            <a href=" " class="nav-link text-muted" target="_blank">About Us</a>
+          </li>
+          <li class="nav-item">
+            <a href=" " class="nav-link text-muted" target="_blank">Blog</a>
+          </li>
+          <li class="nav-item">
+            <a href=" " class="nav-link pe-0 text-muted" target="_blank">License</a>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
--->
+  
+</footer>
   <!--   Core JS Files   -->
   <script src="../assets/js/core/popper.min.js"></script>
   <script src="../assets/js/core/bootstrap.min.js"></script>
   <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     var win = navigator.platform.indexOf('Win') > -1;
     if (win && document.querySelector('#sidenav-scrollbar')) {
@@ -331,45 +557,170 @@
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Map script module   -->
+       <!-- Leaflet & Chart.js -->
+       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+       <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module">
-    import { getSimulatedData } from "../assets/data/sim.js"; //simulate
-    //thingspeak: import { fetchThingSpeakData } from "../assets/data/thingspeak.js"; //thingspeak
-  
-    const ctx = document.getElementById("chart-line").getContext("2d");
-  
-    const chart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: [],
-        datasets: [{
-          label: "Field 1",
-          borderColor: "#4e73df",
-          backgroundColor: "rgba(78, 115, 223, 0.1)",
+      import { graphData } from '../assets/data/graph-map.js';
+    
+      // Inisialisasi Chart.js (sama seperti sebelumnya)…
+      const ctx = document.getElementById('chart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [], // nanti diisi lewat updateChart
+      datasets: [
+        {
+          label: 'SST',
           data: [],
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: { display: true },
-          y: { beginAtZero: true }
+          borderColor: 'blue',
+          fill: false,
+        },
+        {
+          label: 'Heat Stress',
+          data: [],
+          borderColor: 'orange',
+          fill: false,
+        },
+        {
+          label: 'Threshold',
+          data: [],
+          borderColor: 'red',
+          borderDash: [5, 5],
+          fill: false,
+          pointRadius: 0, // biar titik merah ga kelihatan
         }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          min: 1,
+          max: 40,
+          title: {
+            display: true,
+            text: 'SST (°C)'
+          }
+        },
+        x: {
+    ticks: {
+      callback: function(value, index, ticks) {
+        const date = new Date(this.getLabelForValue(value));
+        return `${date.getMonth() + 1}/${date.getDate()}`; // contoh: 8/12
       }
-    });
-  
-    async function updateChart() {
-      //const { labels, values } = await fetchThingSpeakData(10); //thingspeak
-      const { labels, values } = await getSimulatedData(10); //sim
-      chart.data.labels = labels;
-      chart.data.datasets[0].data = values;
-      chart.update();
     }
-  //tes
-    updateChart();              // Load awal
-    setInterval(updateChart, 5000);  // Update tiap 5 detik
-  </script>
+  }
+      }
+    }
+  });
+    
+function updateChart(data) {
+  chart.data.labels = data.map(d => d.date);
+  chart.data.datasets[0].data = data.map(d => d.sst);
+  chart.data.datasets[1].data = data.map(d => d.heatStress);
+  chart.data.datasets[2].data = Array(data.length).fill(30); // garis threshold tetap di 30
+  chart.update();
+}
+
+    
+      // Data lokasi simulasi
+      const locations = [
+        {
+          id: 'Komodo',
+          name: 'Pulau Komodo',
+          coord: [-8.525, 119.501],
+          country: 'Indonesia'
+        }
+      ];
+    
+      // Inisialisasi Leaflet
+      const map = L.map('map').setView([-8.525,119.501], 6);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        attribution:'&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    
+      // Buat marker & event
+      locations.forEach(loc => {
+        const mk = L.marker(loc.coord).addTo(map);
+        mk.bindPopup(`<strong>${loc.name}</strong><br><small>${loc.country}</small>`);
+    
+        mk.on('click', () => {
+          updateChart(graphData);
+          renderLocationList(locations);
+        });
+      });
+    
+      // Render daftar lokasi
+      function renderLocationList(locs) {
+        const ul = document.getElementById('location-list');
+        ul.innerHTML = '';
+        locs.forEach(loc => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.textContent = loc.name;
+          li.onclick = () => updateChart(graphData);
+          ul.appendChild(li);
+        });
+      }
+    
+      // Inisialisasi chart & list saat load
+      updateChart(graphData);
+      renderLocationList(locations);
+    </script>
+      <script>
+        // Initialize the vector map
+        var map = new jsVectorMap({
+          selector: "#vector-map",
+          map: "world_merc",
+          zoomOnScroll: false,
+          zoomButtons: false,
+          selectedMarkers: [1, 3],
+          markersSelectable: true,
+          markers: [{
+              name: "USA",
+              coords: [40.71296415909766, -74.00437720027804]
+            },
+            {
+              name: "Germany",
+              coords: [51.17661451970939, 10.97947735117339]
+            },
+            {
+              name: "Brazil",
+              coords: [-7.596735421549542, -54.781694323779185]
+            },
+            {
+              name: "Russia",
+              coords: [62.318222797104276, 89.81564777631716]
+            },
+            {
+              name: "China",
+              coords: [22.320178999475512, 114.17161225541399],
+              style: {
+                fill: '#E91E63'
+              }
+            }
+          ],
+          markerStyle: {
+            initial: {
+              fill: "#e91e63"
+            },
+            hover: {
+              fill: "E91E63"
+            },
+            selected: {
+              fill: "E91E63"
+            }
+          },
+    
+    
+        });
+      </script>
+    
   <!-- Github buttons -->
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->

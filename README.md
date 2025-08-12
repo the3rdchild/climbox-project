@@ -16,6 +16,8 @@ cd /home/user/climbox-project/
 # Install dependencies
 npm i
 
+# Firebase frontend host-view:
+firebase emulators:start --only hosting
 ```
 
 ---
