@@ -11,3 +11,4 @@ auth.js
 serviceAccount.json
 firebase-debug.log
 .env
+backendApi.js
