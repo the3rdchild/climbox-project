@@ -284,22 +284,15 @@
       function init(){
         if(window.CLIMBOX_CONFIG) Object.assign(cfg, window.CLIMBOX_CONFIG);
       
-        // 🔹 1. Render dari cache dulu
+        // render dulu dari cache biar halaman tidak kosong saat load
         renderFromCacheIfAvailable();
       
-        // 🔹 2. Lalu mulai polling ke backend
+        // mulai polling data dari backend
         startPolling();
       
         console.log('graph-fetch initialized', cfg);
       }
       
-    // init after DOM ready
-    function init(){
-      // allow override via global before script load
-      if(window.CLIMBOX_CONFIG) Object.assign(cfg, window.CLIMBOX_CONFIG);
-      startPolling();
-      console.log('graph-fetch initialized', cfg);
-    }
   
     if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
