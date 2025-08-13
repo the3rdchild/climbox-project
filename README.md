@@ -29,10 +29,6 @@ climbox-project
 ├── public
 │   ├── assets
 │   │   ├── data
-│   │   │   └── thingspeak.js
-│   │   │   ├── graph-map-template.js
-│   │   │   ├── graph-map.js
-│   │   │   ├── sim.js
 │   │   ├── css
 │   │   ├── fonts
 │   │   ├── img
