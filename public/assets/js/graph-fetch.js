@@ -33,13 +33,27 @@
         .replace(/^_+|_+$/g, '');    // trim underscores
     }
   
-    function fetchSensorRows(locationId){
-      const url = `${cfg.BACKEND_BASE_URL.replace(/\/+$/,'')}/sensors/${encodeURIComponent(locationId)}`;
-      return fetch(url, {cache: "no-store"}).then(r=>{
-        if(!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      });
-    }
+    function fetchSensorRows(locationId) {
+        const url = `${cfg.BACKEND_BASE_URL.replace(/\/+$/,'')}/sensors/${encodeURIComponent(locationId)}`;
+        return fetch(url, { cache: "no-store" })
+          .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+          })
+          .then(data => {
+            // pastikan data dalam bentuk array of rows
+            if (Array.isArray(data)) return data;
+            if (Array.isArray(data.rows)) return data.rows; // kalau backend kirim { rows: [...] }
+            throw new Error("Invalid backend data format");
+          });
+      }
+      
+      function startPolling() {
+        fetchAndRenderOnce(); // run pertama
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(fetchAndRenderOnce, 10 * 1000); // update setiap 10 detik
+      }
+      
   
     // Build grouped object from a raw sheet row (header keys)
     function buildGroupForRow(rawRow){
@@ -242,11 +256,6 @@
       // Replace calls to fetchSensorRows(...) in this file with loadSensorDataAdapter() OR
       // make fetchSensorRows call this adapter internally. For minimal change, update fetchSensorRows:
       
-      function fetchSensorRows(locationId){
-        // keep backward compatibility: allow manual location param or use cfg
-        const loc = locationId || cfg.LOCATION_ID || cfg.locationId;
-        return loadSensorDataAdapter(loc);
-      }      
   
   
     // periodic poll
@@ -257,7 +266,33 @@
       if(pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(fetchAndRenderOnce, (cfg.POLL_SECONDS || 60) * 1000);
     }
-  
+
+    function renderFromCacheIfAvailable() {
+        const cache = loadCache(cfg.LOCATION_ID || cfg.locationId);
+        if (cache && cache.grouped) {
+          console.log(`💾 Rendering from cache for ${cfg.LOCATION_ID}`, cache);
+          const cards = getTargetCards();
+          const order = ['meteorologi','presipitasi','kualitas_fisika','kualitas_kimia_dasar','kualitas_kimia_lanjut','kualitas_turbiditas'];
+          order.forEach((grpName, i) => {
+            const cardEl = cards[i];
+            const groupData = cache.grouped.groups[grpName] || {};
+            renderGroupToCard(cardEl, grpName, groupData, cache.grouped.timestamp);
+          });
+        }
+      }
+      
+      function init(){
+        if(window.CLIMBOX_CONFIG) Object.assign(cfg, window.CLIMBOX_CONFIG);
+      
+        // 🔹 1. Render dari cache dulu
+        renderFromCacheIfAvailable();
+      
+        // 🔹 2. Lalu mulai polling ke backend
+        startPolling();
+      
+        console.log('graph-fetch initialized', cfg);
+      }
+      
     // init after DOM ready
     function init(){
       // allow override via global before script load
