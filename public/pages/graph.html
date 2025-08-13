@@ -283,34 +283,34 @@
         <!-- Grid graph -->
       <div class="container-fluid py-4">
       <div class="row g-3">
-      <!-- Satellite -->
+    <!-- 1: Meteorologi -->
       <div class="col-12 col-md-4 col-lg-2">
-        <div class="card card-satellite h-100">
+        <div class="card card-satellite h-100" data-group="meteorologi">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="title">SATELLITE OBSERVATION</div>
-                <div class="big-n">29.3°C</div>
+                <div class="title">METEOROLOGI</div>
+                <div class="big-n">--</div>
               </div>
-              <div class="small-chip">Updated daily</div>
+              <div class="small-chip">LIVE</div>
             </div>
-
+  
             <hr style="border-color: rgba(0,0,0,0.06)">
-
+  
             <div class="row">
               <div class="col-6">
-                <div class="muted">SURFACE TEMP</div>
-                <div class="h6 mb-0">29.3°C</div>
+                <div class="muted">WIND</div>
+                <div class="h6 mb-0 field-surface-temp">--</div>
               </div>
               <div class="col-6">
-                <div class="muted">HISTORICAL MAX</div>
-                <div class="h6 mb-0">27.3°C</div>
+                <div class="muted">TEMP</div>
+                <div class="h6 mb-0 field-historical-max">--</div>
               </div>
             </div>
-
+  
             <div class="mt-3">
-              <div class="muted">SST ANOMALY</div>
-              <div class="fw-bold">+2.1°C</div>
+              <div class="muted">NOTES</div>
+              <div class="fw-bold field-note">--</div>
             </div>
 
             <div class="bar-strip" aria-hidden="true">
@@ -325,30 +325,30 @@
         </div>
       </div>
 
-      <!-- Buoy -->
+    <!-- 2: Presipitasi -->
       <div class="col-12 col-md-4 col-lg-2">
-        <div class="card card-buoy h-100">
+        <div class="card card-buoy h-100" data-group="presipitasi">
           <div class="card-body">
             <div class="d-flex justify-content-between">
-              <div class="title text-dark">BUOY OBSERVATION</div>
-              <div class="small-chip text-dark">LIVE</div>
+              <div class="title text-dark">PRESIPITASI</div>
+              <div class="small-chip">LIVE</div>
             </div>
-
+  
             <div class="mt-2">
-              <div class="big-n h3 mb-0 bold">29.1°C</div>
-              <div class="muted">Surface Temp < 1m</div>
+              <div class="big-n h3 mb-0 bold">--</div>
+              <div class="muted">Current</div>
             </div>
-
-            <div class="d-flex justify-content-between">
-
-            </div>
-          
+  
             <hr style="border-color: rgba(255,255,255,0.14)">
-
+  
             <div class="mt-2">
-              <div class="h2 mb-0">29.2°C</div>
-              <div class="muted">Temp at 5m</div>
+              <div class="h2 mb-0 field-alt">--</div>
+              <div class="muted">Secondary</div>
             </div>
+  
+            <div class="group-metrics mt-3"></div>
+  
+            <div class="muted mt-2 last-updated">Last data received: --</div>
 
             <div class="d-flex justify-content-center align-items-end" style="height:100px; margin-top: 25px;">
               <!-- simple buoy illustration -->
@@ -362,11 +362,11 @@
         </div>
       </div>
 
-      <!-- Heat Stress Alert -->
+    <!-- 3: Heat Stress / Kualitas Fisika -->
       <div class="col-12 col-md-4 col-lg-2">
-        <div class="card card-alert h-100">
+        <div class="card card-alert h-100" data-group="kualitas_fisika">
           <div class="card-body">
-            <div class="title text-dark">HEAT STRESS ALERT LEVEL</div>
+            <div class="title text-dark">KUALITAS FISIKA</div>
 
             <div class="d-flex align-items-center mt-3">
               <!-- donut SVG -->
@@ -378,37 +378,38 @@
             </div> 
             <div class="d-flex align-items-center mt-3">
               <div class="ms-3">
-                <div class="h6 mb-0">ALERT</div>
-                <div class="h3 display-6 fw-bold">LEVEL 2</div>
-                <div class="muted">Last data received 1 day ago</div>
+                <div class="h6 mb-0">KEY</div>
+                <div class="h3 display-6 fw-bold big-n">--</div>
+                <div class="muted last-updated">Last data received: --</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Wind -->
+    <!-- 4: Kualitas Kimia Dasar -->
       <div class="col-12 col-md-4 col-lg-2">
-        <div class="card card-wind h-100">
+        <div class="card card-wind h-100" data-group="kualitas_kimia_dasar">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
-              <div class="title">WIND</div>
+              <div class="title">KUALITAS KIMIA DASAR</div>
               <div class="small-chip">LIVE</div>
             </div>
 
             <div class="mt-2">
-              <div class="big-n">8.6 <small class="muted">km/h</small></div>
-              <div class="muted">Direction: 108°</div>
+              <div class="big-n">--</div>
+              <div class="muted">Main metric</div>
             </div>
 
             <hr>
 
             <div class="d-flex">
               <div>
-                <div class="muted">WAVES</div>
-                <div class="mb-1">Height 0.7 m</div>
-                <div class="muted">Period 8s</div>
+                <div class="muted">Detail A</div>
+                <div class="mb-1 field-detail-a">--</div>
+                <div class="muted">Detail B</div>
               </div>
+
               <div class="ms-auto">
                 <!-- wave avatar -->
                 <svg width="80" height="80" viewBox="0 0 24 24" fill="none" role="img" aria-label="waves">
@@ -417,40 +418,40 @@
               </div>
             </div>
 
-            <div class="muted" style="margin-top: 50px;">
-              Last data received -88 sec ago. Updated hourly
-            </div>
+            <div class="group-metrics mt-3"></div>
+            <div class="muted mt-2 last-updated" style="margin-top: 20px;">Last data received: --</div>
+  
           </div>
         </div>
       </div>
-      <!-- Satellite -->
+    <!-- 5: Kualitas Kimia Lanjut -->
       <div class="col-12 col-md-4 col-lg-2">
-        <div class="card card-satellite h-100">
+        <div class="card card-satellite h-100" data-group="kualitas_kimia_lanjut">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="title">SATELLITE OBSERVATION</div>
-                <div class="big-n">29.3°C</div>
+                <div class="title">KUALITAS KIMIA LANJUT</div>
+                <div class="big-n">--</div>
               </div>
-              <div class="small-chip">Updated daily</div>
+              <div class="small-chip">LIVE</div>
             </div>
 
             <hr style="border-color: rgba(0,0,0,0.06)">
 
             <div class="row">
               <div class="col-6">
-                <div class="muted">SURFACE TEMP</div>
-                <div class="h6 mb-0">29.3°C</div>
+                <div class="muted">PRIMARY</div>
+                <div class="h6 mb-0 field-primary">--</div>
               </div>
               <div class="col-6">
-                <div class="muted">HISTORICAL MAX</div>
-                <div class="h6 mb-0">27.3°C</div>
+                <div class="muted">SECOND</div>
+                <div class="h6 mb-0 field-secondary">--</div>
               </div>
             </div>
 
             <div class="mt-3">
-              <div class="muted">SST ANOMALY</div>
-              <div class="fw-bold">+2.1°C</div>
+              <div class="group-metrics mt-3"></div>
+              <div class="muted mt-2 last-updated">Last data received: --</div>
             </div>
 
             <div class="bar-strip" aria-hidden="true">
@@ -465,18 +466,18 @@
         </div>
       </div>
 
-      <!-- Buoy -->
+    <!-- 6: Kualitas Turbiditas -->
       <div class="col-12 col-md-4 col-lg-2">
-        <div class="card card-buoy h-100">
+        <div class="card card-buoy h-100" data-group="kualitas_turbiditas">
           <div class="card-body">
             <div class="d-flex justify-content-between">
-              <div class="title text-dark">BUOY OBSERVATION</div>
+              <div class="title text-dark">KUALITAS TURBIDITAS</div>
               <div class="small-chip text-dark">LIVE</div>
             </div>
 
             <div class="mt-2">
-              <div class="big-n h3 mb-0 bold">29.1°C</div>
-              <div class="muted">Surface Temp < 1m</div>
+              <div class="big-n h3 mb-0 bold">--</div>
+              <div class="muted">Main</div>
             </div>
 
             <div class="d-flex justify-content-between">
@@ -486,10 +487,13 @@
             <hr style="border-color: rgba(255,255,255,0.14)">
 
             <div class="mt-2">
-              <div class="h2 mb-0">29.2°C</div>
-              <div class="muted">Temp at 5m</div>
+              <div class="h2 mb-0 field-depth">--</div>
+              <div class="muted">Detail</div>
             </div>
 
+            <div class="group-metrics mt-3"></div>
+            <div class="muted mt-2 last-updated">Last data received: --</div>
+  
             <div class="d-flex justify-content-center align-items-end" style="height:100px; margin-top: 25px;">
               <!-- simple buoy illustration -->
               <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="buoy">
@@ -541,6 +545,17 @@ Graph konten
   </div>
   
 </footer>
+<!--Graph script fetch-->
+  <script>
+    // override default config (opsional) — ubah sesuai environment
+    window.CLIMBOX_CONFIG = {
+      BACKEND_BASE_URL: "http://localhost:3000",
+      LOCATION_ID: "pulau_komodo",
+      POLL_SECONDS: 30 // cek tiap 30 detik
+    };
+  </script>
+
+  <script src="../assets/js/graph-fetch.js"></script>
   <!--   Core JS Files   -->
   <script src="../assets/js/core/popper.min.js"></script>
   <script src="../assets/js/core/bootstrap.min.js"></script>
@@ -656,17 +671,15 @@ function updateChart(data) {
       });
     
       // Render daftar lokasi
-      function renderLocationList(locs) {
-        const ul = document.getElementById('location-list');
-        ul.innerHTML = '';
-        locs.forEach(loc => {
-          const li = document.createElement('li');
-          li.className = 'list-group-item d-flex justify-content-between align-items-center';
-          li.textContent = loc.name;
-          li.onclick = () => updateChart(graphData);
-          ul.appendChild(li);
-        });
-      }
+      function renderLocationList(locations) {
+  const el = document.getElementById('location-list'); // atau sesuai ID aslinya
+  if (!el) return; // kalau nggak ada, langsung keluar
+  
+  el.innerHTML = ''; // sekarang aman
+  locations.forEach(loc => {
+    // render item...
+  });
+}
     
       // Inisialisasi chart & list saat load
       updateChart(graphData);

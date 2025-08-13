@@ -1,7 +1,7 @@
 # test_push.py
 import requests, time, random, json
 
-BACKEND = "http://localhost:4000/ingest"
+BACKEND = "http://localhost:3000/ingest"
 
 def push(locationId, sensorId, sensorType, value):
     payload = {
