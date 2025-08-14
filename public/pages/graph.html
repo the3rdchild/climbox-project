@@ -269,7 +269,7 @@
       <!-- Chart + list (6/12) -->
       <div class="col-12 col-xl-6 h-50 d-flex flex-column">
         <!-- Chart -->
-        <span class="font-weight-bold" style="margin-left: 20px; text-align: center;">
+        <span id="location-name-display" class="font-weight-bold" style="margin-left: 20px; text-align: center;">
           Pulau Komodo
         </span>
         <div class="flex-grow-1 p-3 responsive-chart">
@@ -545,19 +545,7 @@ Graph konten
   </div>
   
 </footer>
-<!--Graph script fetch-->
-<script>
-  window.CLIMBOX_CONFIG = {
-    LOCATION_ID: 'pulau_komodo',
-    POLL_SECONDS: 30,
-    // MQTT for browser (use WSS if your site is HTTPS)
-    MQTT_WS: 'wss://broker.emqx.io:8084/mqtt', // <--- use wss for secure
-    MQTT_USERNAME: '',        // optional for subscribe; leave empty if broker allows anonymous subscribe
-    MQTT_PASSWORD: '',
-    MQTT_TOPIC_BASE: 'climbox', 
-    MQTT_AUTO_DISABLE_POLL: true
-  };
-</script>
+<script src="../assets/js/map-live.js"></script>
 
 <!-- then include your script -->
 <script src="../assets/js/graph-fetch.js"></script>
@@ -648,48 +636,97 @@ function updateChart(data) {
   chart.update();
 }
 
+const urlParams = new URLSearchParams(window.location.search);
+    const locationId = urlParams.get('location');
+    if (!locationId) {
+        // Jika tidak ada locationId, arahkan ke map.html
+        window.location.href = '/pages/map.html';
+    }
+    window.CLIMBOX_CONFIG = {
+        LOCATION_ID: locationId || 'pulau_komodo',
+        POLL_SECONDS: 30,
+        MQTT_WS: 'wss://broker.emqx.io:8084/mqtt',
+        MQTT_USERNAME: '',
+        MQTT_PASSWORD: '',
+        MQTT_TOPIC_BASE: 'climbox',
+        MQTT_AUTO_DISABLE_POLL: true
+    };
     
       // Data lokasi simulasi
       const locations = [
-        {
-          id: 'Komodo',
-          name: 'Pulau Komodo',
-          coord: [-8.525, 119.501],
-          country: 'Indonesia'
+            {
+                id: ' ',
+                name: ' ',
+                coord: [],
+                country: ' '
+            }
+        ];
+    // Cek MQTT_WS
+    console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
+
+        // Fungsi untuk memuat data lokasi dari JSON
+        async function loadLocations() {
+    try {
+        console.log('Fetching locations...');
+        const response = await fetch('../assets/data/locations.json'); // Ambil data dari JSON
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
         }
-      ];
-    
-      // Inisialisasi Leaflet
-      const map = L.map('map').setView([-8.525,119.501], 6);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-        attribution:'&copy; OpenStreetMap contributors'
-      }).addTo(map);
-    
-      // Buat marker & event
-      locations.forEach(loc => {
-        const mk = L.marker(loc.coord).addTo(map);
-        mk.bindPopup(`<strong>${loc.name}</strong><br><small>${loc.country}</small>`);
-    
-        mk.on('click', () => {
-          updateChart(graphData);
-          renderLocationList(locations);
-        });
-      });
-    
-      // Render daftar lokasi
-      function renderLocationList(locations) {
-  const el = document.getElementById('location-list'); // atau sesuai ID aslinya
-  if (!el) return; // kalau nggak ada, langsung keluar
-  
-  el.innerHTML = ''; // sekarang aman
-  locations.forEach(loc => {
-    // render item...
-  });
+        const data = await response.json(); // Parse JSON
+        console.log('Locations data:', data); // Cek data lokasi
+        // Cari lokasi yang sesuai dengan locationId
+        const foundLocation = data.find(location => location.locationId === locationId);
+        if (foundLocation) {
+            // Jika lokasi ditemukan, isi array locations
+            locations[0] = {
+                id: foundLocation.locationId,
+                name: foundLocation.name,
+                coord: foundLocation.coord,
+                country: foundLocation.country
+            };
+            const locationNameSpan = document.getElementById('location-name-display');
+            if (locationNameSpan) {
+                locationNameSpan.textContent = foundLocation.name; // Perbarui teks span
+            } else {
+                console.warn("Element with ID 'location-name-display' not found.");
+            }
+            document.querySelector('.font-weight-bold').textContent = foundLocation.name;
+            // Inisialisasi peta dengan koordinat lokasi
+            initMap(foundLocation.coord);
+        } else {
+            console.warn('Location not found:', locationId);
+        }
+    } catch (error) {
+        console.error('Error loading locations:', error);
+    }
 }
-    
-      // Inisialisasi chart & list saat load
-      updateChart(graphData);
-      renderLocationList(locations);
+        // Fungsi untuk menginisialisasi peta
+        function initMap(coord) {
+            const map = L.map('map').setView(coord, 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            // Tambahkan marker untuk lokasi
+            const mk = L.marker(coord).addTo(map);
+            mk.bindPopup(`<strong>${locations[0].name}</strong><br><small>${locations[0].country}</small>`);
+            
+            // Immediately show chart and location list
+            updateChart(graphData);
+            renderLocationList(locations);
+        }
+        function renderLocationList(locations) {
+            const el = document.getElementById('location-list'); // atau sesuai ID aslinya
+            if (!el) return; // kalau nggak ada, langsung keluar
+            el.innerHTML = ''; // sekarang aman
+            locations.forEach(loc => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
+                li.textContent = loc.name; // Tampilkan nama lokasi
+                el.appendChild(li);
+            });
+        }
+        // Panggil fungsi untuk memuat lokasi
+        loadLocations();
     </script>
     
   <!-- Github buttons -->

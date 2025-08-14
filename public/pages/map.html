@@ -260,9 +260,11 @@
         <!-- Chart + list (6/12) -->
         <div class="col-12 col-xl-6 h-50 d-flex flex-column" style="margin-top: 20px;">
           <!-- Chart -->
-          <a href="../pages/graph.html" class="fon  t-weight-bold text-primary" style="margin-left: 20px; text-align: center;">
+          <a href="../pages/graph.html" class="font-weight-bold text-primary" style="margin-left: 20px; text-align: center;">
             Grafik Pulau Komodo
           </a>
+
+
           <div class="flex-grow-1 p-3 responsive-chart">
             <canvas id="chart" style="width:100%; height:100%;"></canvas>
           </div>   
@@ -281,8 +283,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script type="module">
+    <!-- your existing code that defines locations, initializes map, creates markers -->
+<script src="../assets/js/map-live.js"></script>
+
+  <script type="module">
       import { graphData } from '../assets/data/graph-map.js';
     
       // Inisialisasi Chart.js (sama seperti sebelumnya)…
@@ -338,125 +342,81 @@
     }
   });
     
-function updateChart(data) {
-  chart.data.labels = data.map(d => d.date);
-  chart.data.datasets[0].data = data.map(d => d.sst);
-  chart.data.datasets[1].data = data.map(d => d.heatStress);
-  chart.data.datasets[2].data = Array(data.length).fill(30); // garis threshold tetap di 30
-  chart.update();
+  function updateChart(data) {
+    chart.data.labels = data.map(d => d.date);
+    chart.data.datasets[0].data = data.map(d => d.sst);
+    chart.data.datasets[1].data = data.map(d => d.heatStress);
+    chart.data.datasets[2].data = Array(data.length).fill(30); // garis threshold tetap di 30
+    chart.update();
+  }
+
+    
+      // Data lokasi 
+// Deklarasi array locations di luar fungsi
+const locations = [];
+
+// Fungsi untuk memuat data lokasi dari JSON
+async function loadLocations() {
+    try {
+        const response = await fetch('../assets/data/locations.json'); // Ambil data dari JSON
+        const data = await response.json(); // Parse JSON
+        data.forEach(location => {
+            locations.push(location); // Isi array locations
+        });
+        renderMap(); // Panggil fungsi untuk merender peta setelah data diambil
+    } catch (error) {
+        console.error('Error loading locations:', error);
+    }
 }
 
-    
-      // Data lokasi simulasi
-      const locations = [
-        {
-          id: 'Komodo',
-          name: 'Pulau Komodo',
-          coord: [-8.525, 119.501],
-          country: 'Indonesia'
-        },
-        {
-          id: 'kadal',
-          name: 'Pulau kadal',
-          coord: [-8.525, 122.501],
-          country: 'Indonesia'
-        },
-        {
-          id: 'ikan',
-          name: 'Pulau ikan',
-          coord: [-9.025, 115.501],
-          country: 'Indonesia'
-        }
-      ];
-    
-      // Inisialisasi Leaflet
-      const map = L.map('map').setView([-8.525,119.501], 6);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+// Fungsi untuk merender peta dan marker
+function renderMap() {
+    // Inisialisasi Leaflet
+    const map = L.map('map').setView([-8.525, 119.501], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
-      }).addTo(map);
-    
-      // Buat marker & event
-      locations.forEach(loc => {
+    // Buat marker & event
+    locations.forEach(loc => {
         const mk = L.marker(loc.coord).addTo(map);
         mk.bindPopup(`<strong>${loc.name}</strong><br><small>${loc.country}</small>`);
-    
+
         mk.on('click', () => {
-          updateChart(graphData);
-          renderLocationList(locations);
+            updateChart(graphData); // Pastikan graphData didefinisikan
+            renderLocationList(locations); // Pastikan fungsi ini didefinisikan
+            if (window.MAP_LIVE && typeof window.MAP_LIVE.onMarkerClicked === 'function') {
+                window.MAP_LIVE.onMarkerClicked(loc);
+            }
         });
-      });
-    
-      // Render daftar lokasi
-      function renderLocationList(locs) {
-        const ul = document.getElementById('location-list');
-        ul.innerHTML = '';
-        locs.forEach(loc => {
-          const li = document.createElement('li');
-          li.className = 'list-group-item d-flex justify-content-between align-items-center';
-          li.textContent = loc.name;
-          li.onclick = () => updateChart(graphData);
-          ul.appendChild(li);
+    });
+
+    // Render daftar lokasi
+    renderLocationList(locations);
+}
+
+// Render daftar lokasi
+function renderLocationList(locs) {
+    const ul = document.getElementById('location-list');
+    ul.innerHTML = '';
+    locs.forEach(loc => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
+        li.textContent = loc.name;
+        li.addEventListener('click', () => {
+            window.location.href = `/pages/graph.html?location=${encodeURIComponent(loc.locationId)}`;
         });
-      }
+        ul.appendChild(li);
+    });
+}
+
+// Inisialisasi chart & list saat load
+loadLocations(); // Panggil fungsi untuk memuat lokasi
+
+
     
-      // Inisialisasi chart & list saat load
-      updateChart(graphData);
-      renderLocationList(locations);
     </script>
-            
-    <!-- Main Content end -->
 
-    <!-- Vector Map -->
-    <!-- <div class="container-fluid py-2">
-      <div class="row min-vh-80">
-        <div class="col-12">
-          <div class="card h-100">
-            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-              <div class="bg-dark text-white shadow-primary border-radius-lg pt-4 pb-3">
-                <h5 class="text-white text-capitalize ps-3">Vector Map</h5>
-              </div>
-            </div>
-            <div class="card-body">
-              <div id="vector-map" class="mt-5 min-height-500"></div>
-            </div>
-          </div>
-        </div>
-      </div> -->
-      <!--- Vector Map end-->
-
-      <!-- <footer class="footer py-4  ">
-        <div class="container-fluid">
-          <div class="row align-items-center justify-content-lg-between">
-            <div class="col-lg-6 mb-lg-0 mb-4">
-              <div class="copyright text-center text-sm text-muted text-lg-start">
-                © <script>
-                  document.write(new Date().getFullYear())
-                </script>,
-                made with <i class="fa fa-heart"></i> by
-                <a href="https://www.creative-tim.com" class="font-weight-bold" target="_blank">ClimBox</a>
-                for a better web.
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <ul class="nav nav-footer justify-content-center justify-content-lg-end">
-                <li class="nav-item">
-                  <a href="https://www.creative-tim.com" class="nav-link text-muted" target="_blank">Creative Tim</a>
-                </li>
-                <li class="nav-item">
-                  <a href="https://www.creative-tim.com/presentation" class="nav-link text-muted" target="_blank">About Us</a>
-                </li>
-                <li class="nav-item">
-                  <a href="https://www.creative-tim.com/blog" class="nav-link text-muted" target="_blank">Blog</a>
-                </li>
-                <li class="nav-item">
-                  <a href="https://www.creative-tim.com/license" class="nav-link pe-0 text-muted" target="_blank">License</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </footer> -->
     </div>
   </main>
   <footer class="footer py-4  ">

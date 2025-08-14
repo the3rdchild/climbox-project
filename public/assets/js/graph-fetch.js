@@ -21,7 +21,7 @@
     },
 
     // MQTT settings (override via window.CLIMBOX_CONFIG)
-    MQTT_WS: '', // REQUIRED for MQTT; e.g. 'wss://broker.emqx.io:8084/mqtt'
+    MQTT_WS: 'wss://broker.emqx.io:8084/mqtt', // REQUIRED for MQTT; e.g. 'wss://broker.emqx.io:8084/mqtt'
     MQTT_USERNAME: '',
     MQTT_PASSWORD: '',
     MQTT_TOPIC_BASE: 'climbox',
@@ -166,18 +166,63 @@
   }
 
   // ---------- MQTT (browser) ----------
-  const mqttScriptUrl = 'https://unpkg.com/mqtt/dist/mqtt.min.js';
+  // Menggunakan versi spesifik yang stabil atau yang paling baru jika tidak ada masalah
+  const mqttScriptUrl = 'https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js'; // Menggunakan versi spesifik
   let mqttClient = null;
   let mqttConnected = false;
   let mqttSubscribed = false;
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
-      if (document.querySelector(`script[src="${src}"]`)) return resolve();
+      // Cek apakah skrip sudah ada di DOM
+      if (document.querySelector(`script[src="${src}"]`)) {
+        console.log(`Script already loaded: ${src}`);
+        // Jika sudah ada, pastikan window.mqtt tersedia sebelum resolve
+        if (window.mqtt) {
+          resolve();
+        } else {
+          // Jika skrip sudah ada tapi window.mqtt belum, tunggu sebentar atau reject
+          // Ini bisa terjadi jika skrip dimuat oleh bagian lain dari HTML
+          const checkInterval = setInterval(() => {
+            if (window.mqtt) {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 100); // Cek setiap 100ms
+          setTimeout(() => {
+            if (!window.mqtt) {
+              clearInterval(checkInterval);
+              reject(new Error('mqtt lib not available after script load check'));
+            }
+          }, 5000); // Timeout setelah 5 detik
+        }
+        return;
+      }
+
       const s = document.createElement('script');
-      s.src = src; s.async = true;
-      s.onload = () => resolve();
-      s.onerror = (e) => reject(e);
+      s.src = src;
+      s.async = true;
+      s.onload = () => {
+        console.log(`Script loaded: ${src}`);
+        if (window.mqtt) {
+          resolve();
+        } else {
+          // Jika skrip dimuat tapi window.mqtt belum tersedia, mungkin ada masalah inisialisasi di library itu sendiri
+          console.warn('mqtt script loaded, but window.mqtt is not defined immediately.');
+          // Tambahkan sedikit delay untuk memastikan window.mqtt terinisialisasi
+          setTimeout(() => {
+            if (window.mqtt) {
+              resolve();
+            } else {
+              reject(new Error('mqtt lib not available after script load and short delay'));
+            }
+          }, 100);
+        }
+      };
+      s.onerror = (e) => {
+        console.error(`Failed to load script: ${src}`, e);
+        reject(e);
+      };
       document.head.appendChild(s);
     });
   }
@@ -189,12 +234,18 @@
     }
 
     try {
+      console.log('Attempting to load MQTT client script...');
       await loadScript(mqttScriptUrl);
+      console.log('MQTT client script loaded.');
     } catch (e) {
-      console.warn('Failed to load mqtt client', e);
+      console.warn('Failed to load mqtt client script:', e);
       return;
     }
-    if (!window.mqtt) { console.warn('mqtt lib missing after load'); return; }
+
+    if (!window.mqtt) {
+      console.warn('mqtt lib missing after load - window.mqtt is still undefined.');
+      return;
+    }
 
     const opts = {
       username: cfg.MQTT_USERNAME || undefined,
@@ -289,6 +340,11 @@
   async function init(){
     if(window.CLIMBOX_CONFIG) Object.assign(cfg, window.CLIMBOX_CONFIG);
 
+    // Pastikan LOCATION_ID di cfg sudah terupdate dari window.CLIMBOX_CONFIG
+    // sebelum digunakan oleh renderFromCacheIfAvailable dan initMqttIfEnabled
+    cfg.LOCATION_ID = window.CLIMBOX_CONFIG.LOCATION_ID || cfg.LOCATION_ID;
+    cfg.MQTT_WS = window.CLIMBOX_CONFIG.MQTT_WS || cfg.MQTT_WS; // Pastikan MQTT_WS juga terupdate
+
     renderFromCacheIfAvailable();
 
     // MQTT-only mode: try to init MQTT
@@ -308,4 +364,3 @@
     cfg
   });
 })();
-
