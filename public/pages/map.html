@@ -260,8 +260,8 @@
         <!-- Chart + list (6/12) -->
         <div class="col-12 col-xl-6 h-50 d-flex flex-column" style="margin-top: 20px;">
           <!-- Chart -->
-          <a href="../pages/graph.html" class="font-weight-bold text-primary" style="margin-left: 20px; text-align: center;">
-            Grafik Pulau Komodo
+          <a class="font-weight-bold text-primary" style="margin-left: 20px; text-align: center;">
+            Lihat Data [Pilih Lokasi Sensor]
           </a>
 
 
@@ -404,7 +404,11 @@ function renderLocationList(locs) {
         li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
         li.textContent = loc.name;
         li.addEventListener('click', () => {
-            window.location.href = `/pages/graph.html?location=${encodeURIComponent(loc.locationId)}`;
+          updateChart(graphData);
+          renderLocationList(locations);
+          if (window.MAP_LIVE && typeof window.MAP_LIVE.onMarkerClicked === 'function') {
+                window.MAP_LIVE.onMarkerClicked(loc);
+            }
         });
         ul.appendChild(li);
     });

@@ -214,8 +214,8 @@
       // prefer explicit id
       let el = document.querySelector('#graph-link');
       if (el) return el;
-      // fallback: find first anchor that contains text "Grafik"
-      el = Array.from(document.querySelectorAll('a')).find(a => (a.textContent || '').trim().toLowerCase().startsWith('grafik'));
+      // fallback: find first anchor that contains text "lihat"
+      el = Array.from(document.querySelectorAll('a')).find(a => (a.textContent || '').trim().toLowerCase().startsWith('lihat data'));
       return el || null;
     }
   
@@ -223,7 +223,7 @@
       const a = findGraphLinkEl();
       if (!a) return;
       a.href = `/pages/graph.html?location=${encodeURIComponent(locationId)}`;
-      a.textContent = `Grafik ${displayName || locationId}`;
+      a.textContent = `Lihat Data [${displayName || locationId}] Lebih Lanjut...`;
     }
   
     // Expose small API for marker click wiring
