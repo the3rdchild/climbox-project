@@ -6,7 +6,6 @@
    Important: provide MQTT_WS as a WSS endpoint (eg. 'wss://broker.emqx.io:8084/mqtt').
    If MQTT_WS is empty, the script will only render from local cache and do nothing else.
 */
-
 (() => {
   const cfg = Object.assign({
     LOCATION_ID: "pulau_komodo",

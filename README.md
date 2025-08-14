@@ -63,9 +63,24 @@ climbox-project
 ├── gulpfile.mjs
 ├── README.md
 ```
+---
+
+## Sensors
+
+1. Water temp
+2. EC/ Salinity
+3. Water level
+4. DO
+5. pH
+6. TDS
+7. TSS
+8. AIR TEMP & HUMIDITY
+9 WIND SPEED & DIRECTION
+10 CURAH HUJAN
 
 ---
 
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](https://opensource.org/licenses/MIT) file for details.
+

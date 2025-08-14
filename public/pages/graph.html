@@ -583,12 +583,13 @@ Graph konten
        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
   <script type="module">
       import { graphData } from '../assets/data/graph-map.js';
     
       // Inisialisasi Chart.js (sama seperti sebelumnya)…
       const ctx = document.getElementById('chart').getContext('2d');
-  const chart = new Chart(ctx, {
+    const chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: [], // nanti diisi lewat updateChart
