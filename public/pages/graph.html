@@ -269,7 +269,7 @@
       <!-- Chart + list (6/12) -->
       <div class="col-12 col-xl-6 h-50 d-flex flex-column">
         <!-- Chart -->
-        <span id="location-name-display" class="font-weight-bold" style="margin-left: 20px; text-align: center;">
+        <span class="font-weight-bold" style="margin-left: 20px; text-align: center;">
           Pulau Komodo
         </span>
         <div class="flex-grow-1 p-3 responsive-chart">
@@ -665,7 +665,7 @@ const urlParams = new URLSearchParams(window.location.search);
     console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
 
         // Fungsi untuk memuat data lokasi dari JSON
-        async function loadLocations() {
+async function loadLocations() {
     try {
         console.log('Fetching locations...');
         const response = await fetch('../assets/data/locations.json'); // Ambil data dari JSON
@@ -684,12 +684,6 @@ const urlParams = new URLSearchParams(window.location.search);
                 coord: foundLocation.coord,
                 country: foundLocation.country
             };
-            const locationNameSpan = document.getElementById('location-name-display');
-            if (locationNameSpan) {
-                locationNameSpan.textContent = foundLocation.name; // Perbarui teks span
-            } else {
-                console.warn("Element with ID 'location-name-display' not found.");
-            }
             document.querySelector('.font-weight-bold').textContent = foundLocation.name;
             // Inisialisasi peta dengan koordinat lokasi
             initMap(foundLocation.coord);
