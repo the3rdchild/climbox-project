@@ -268,14 +268,12 @@
       
       <!-- Chart + list (6/12) -->
       <div class="col-12 col-xl-6 h-50 d-flex flex-column">
-        <!-- Chart -->
-        <span class="font-weight-bold" style="margin-left: 20px; text-align: center;">
+        <span id="location-name-display" class="font-weight-bold" style="margin-left: 20px; text-align: center;">
           Pulau Komodo
         </span>
         <div class="flex-grow-1 p-3 responsive-chart">
           <canvas id="chart" style="width:100%; height:100%;"></canvas>
         </div>        
-        <!-- List lokasi di bawah chart -->
       </div>
     </div>
     <!-- End Main -->
@@ -665,26 +663,16 @@ const urlParams = new URLSearchParams(window.location.search);
     console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
 
         // Fungsi untuk memuat data lokasi dari JSON
-async function loadLocations() {
+        async function loadLocations() {
     try {
-        console.log('Fetching locations...');
         const response = await fetch('../assets/data/locations.json'); // Ambil data dari JSON
-        if (!response.ok) {
-            throw new Error('Network response was not ok: ' + response.statusText);
-        }
         const data = await response.json(); // Parse JSON
-        console.log('Locations data:', data); // Cek data lokasi
+        
         // Cari lokasi yang sesuai dengan locationId
         const foundLocation = data.find(location => location.locationId === locationId);
         if (foundLocation) {
-            // Jika lokasi ditemukan, isi array locations
-            locations[0] = {
-                id: foundLocation.locationId,
-                name: foundLocation.name,
-                coord: foundLocation.coord,
-                country: foundLocation.country
-            };
-            document.querySelector('.font-weight-bold').textContent = foundLocation.name;
+            // Jika lokasi ditemukan, perbarui teks span
+            document.getElementById('location-name-display').textContent = foundLocation.name;
             // Inisialisasi peta dengan koordinat lokasi
             initMap(foundLocation.coord);
         } else {
