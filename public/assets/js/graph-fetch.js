@@ -1,11 +1,3 @@
-/* graph-fetch.js (MQTT-only)
-   Usage:
-     <script>window.CLIMBOX_CONFIG = { ... }</script>
-     <script src="../assets/js/graph-fetch.js"></script>
-
-   Important: provide MQTT_WS as a WSS endpoint (eg. 'wss://broker.emqx.io:8084/mqtt').
-   If MQTT_WS is empty, the script will only render from local cache and do nothing else.
-*/
 (() => {
   const cfg = Object.assign({
     LOCATION_ID: "pulau_komodo",
@@ -142,28 +134,41 @@
   window.CLIMBOX_DOWNLOAD_CACHE = () => downloadCache(cfg.LOCATION_ID || cfg.locationId);
 
   // Process incoming rows (array of row objects)
+
   function processRowsAndRender(rows) {
     if (!rows || !Array.isArray(rows) || rows.length === 0) return;
     const lastRow = rows[rows.length - 1];
     const grouped = buildGroupForRow(lastRow);
-
     // update UI
     const cards = getTargetCards();
     const order = ['meteorologi','presipitasi','kualitas_fisika','kualitas_kimia_dasar','kualitas_kimia_lanjut','kualitas_turbiditas'];
     order.forEach((grpName, i) => {
-      const cardEl = cards[i];
-      const groupData = grouped.groups[grpName] || {};
-      renderGroupToCard(cardEl, grpName, groupData, grouped.timestamp);
+        const cardEl = cards[i];
+        const groupData = grouped.groups[grpName] || {};
+        renderGroupToCard(cardEl, grpName, groupData, grouped.timestamp);
     });
-
-    // save to cache same shape as before
+    // Update grafik dengan data
+    chart1.data.labels.push(grouped.timestamp); // Tambahkan timestamp ke label
+    chart1.data.datasets[0].data.push(grouped.groups.kualitas_fisika['water_temp']); // Water Temp
+    chart1.data.datasets[1].data.push(grouped.groups.meteorologi['humidity']); // Humidity
+    chart1.data.datasets[2].data.push(grouped.groups.meteorologi['air_temp']); // Air Temp
+    chart1.update();
+    chart2.data.labels.push(grouped.timestamp); // Tambahkan timestamp ke label
+    chart2.data.datasets[0].data.push(grouped.groups.kualitas_turbiditas['tss']); // TSS
+    chart2.data.datasets[1].data.push(grouped.groups.kualitas_kimia_dasar['ph']); // pH
+    chart2.update();
+    chart3.data.labels.push(grouped.timestamp); // Tambahkan timestamp ke label
+    chart3.data.datasets[0].data.push(grouped.groups.kualitas_kimia_lanjut['do']); // DO
+    chart3.data.datasets[1].data.push(grouped.groups.kualitas_fisika['ec']); // EC
+    chart3.data.datasets[2].data.push(grouped.groups.kualitas_kimia_dasar['tds']); // TDS
+    chart3.update();
     saveCache(cfg.LOCATION_ID || cfg.locationId, {
       fetchedAt: new Date().toISOString(),
       lastTimestamp: grouped.timestamp,
       raw: rows,
       grouped
-    });
-  }
+  });
+}
 
   // ---------- MQTT (browser) ----------
   // Menggunakan versi spesifik yang stabil atau yang paling baru jika tidak ada masalah

@@ -1,6 +1,24 @@
 [
-    { "locationId": "pulau_komodo", "name": "Pulau Komodo", "coord": [-8.525, 119.501], "country": "Indonesia" },
-    { "locationId": "pulau_2", "name": "Pulau 2", "coord": [-8.525, 122.501], "country": "Indonesia" },
-    { "locationId": "pulau_3", "name": "Pulau 3", "coord": [-9.025, 115.501], "country": "Indonesia" }
-  ]
+  { 
+    "locationId": "pulau_komodo", 
+    "name": "Pulau Komodo", 
+    "coord": [-8.525, 119.501], 
+    "country": "Indonesia", 
+    "sheetId":"1ArdjxcfEmBIaUZGj8EMvDi7wrbHpmXUdLNFmtYOWiu8" 
+  },
+  { 
+    "locationId": "pulau_2", 
+    "name": "Pulau 2", 
+    "coord": [-8.525, 122.501], 
+    "country": "Indonesia", 
+    "sheetId":"1E1uGFo16pdFXHxE4iQnc_Xj-xUa--XhVrXvobM5s1Fo"
+  },
+  { 
+    "locationId": "pulau_3", 
+    "name": "Pulau 3", 
+    "coord": [-9.025, 115.501], 
+    "country": "Indonesia",  
+    "sheetId":"1ok3wouwPLvU0N0iinW2aJ8ju-JNEBt1y5lxM-9k12jg"
+  }
+ ]
   

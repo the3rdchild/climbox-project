@@ -92,41 +92,23 @@
           </a>
         </li>
 
-        <!-- <li class="nav-item"> -->
- <!-- <a class="nav-link text-dark" href="virtual-reality.html">
-            <i class="material-symbols-rounded opacity-5">view_in_ar</i>
-            <span class="nav-link-text ms-1">Virtual Reality</span>
-          </a>
-        </li>
-        <li class="nav-item">
- <a class="nav-link text-dark" href="rtl.html">
-            <i class="material-symbols-rounded opacity-5">format_textdirection_r_to_l</i>
-            <span class="nav-link-text ms-1">RTL</span>
-          </a>
-        </li>
-        <li class="nav-item">
- <a class="nav-link text-dark" href="notifications.html">
-            <i class="material-symbols-rounded opacity-5">notifications</i>
-            <span class="nav-link-text ms-1">Notifications</span>
-          </a>
-        </li> -->
         <li class="nav-item mt-3">
           <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Account pages</h6>
         </li>
         <li class="nav-item">
- <a class="nav-link text-dark" href="profile.html">
+          <a class="nav-link text-dark" href="profile.html">
             <i class="material-symbols-rounded opacity-5">person</i>
             <span class="nav-link-text ms-1">Profile</span>
           </a>
         </li>
         <li class="nav-item">
- <a class="nav-link text-dark" href="sign-in.html">
+          <a class="nav-link text-dark" href="sign-in.html">
             <i class="material-symbols-rounded opacity-5">login</i>
             <span class="nav-link-text ms-1">Sign In</span>
           </a>
         </li>
         <li class="nav-item">
- <a class="nav-link text-dark" href="sign-up.html">
+          <a class="nav-link text-dark" href="sign-up.html">
             <i class="material-symbols-rounded opacity-5">assignment</i>
             <span class="nav-link-text ms-1">Sign Up</span>
           </a>
@@ -166,7 +148,7 @@
           <ul class="navbar-nav d-flex align-items-center  justify-content-end">
             <li class="nav-item d-flex align-items-center">
 <!-- <a class="btn btn-outline-primary btn-sm mb-0 me-3" target="_blank" href="https://www.creative-tim.com/builder?ref=navbar-material-dashboard">Online Builder</a> -->
-</li>
+            </li>
             <!-- <li class="mt-1">
               <a class="github-button" href="https://github.com/creativetimofficial/material-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star creativetimofficial/material-dashboard on GitHub">Star</a>
             </li> -->
@@ -261,20 +243,28 @@
 
     <!-- Main -->
     <div class="row h-100">
-      <!-- Map (6/12) -->
       <div class="col-12 col-xl-6 h-90 p-0">
         <div id="map" style="width:100%; height:100%;"></div>
       </div>
       
-      <!-- Chart + list (6/12) -->
       <div class="col-12 col-xl-6 h-50 d-flex flex-column">
         <span id="location-name-display" class="font-weight-bold" style="margin-left: 20px; text-align: center;">
-          Pulau Komodo
+            Pulau Komodo
         </span>
         <div class="flex-grow-1 p-3 responsive-chart">
-          <canvas id="chart" style="width:100%; height:100%;"></canvas>
-        </div>        
-      </div>
+            <canvas id="chart1" style="width:100%; height:100%;"></canvas> <!-- Grafik 1 -->
+        </div>
+    </div>
+    <div class="col-12 col-xl-6 h-50 d-flex flex-column">
+        <div class="flex-grow-1 p-3 responsive-chart">
+            <canvas id="chart2" style="width:100%; height:100%;"></canvas> <!-- Grafik 2 -->
+        </div>
+    </div>
+    <div class="col-12 col-xl-6 h-50 d-flex flex-column">
+        <div class="flex-grow-1 p-3 responsive-chart">
+            <canvas id="chart3" style="width:100%; height:100%;"></canvas> <!-- Grafik 3 -->
+        </div>
+    </div>
     </div>
     <!-- End Main -->
 
@@ -418,8 +408,7 @@
 
             <div class="group-metrics mt-3"></div>
             <div class="muted mt-2 last-updated" style="margin-top: 20px;">Last data received: --</div>
-  
-          </div>
+            </div>
         </div>
       </div>
     <!-- 5: Kualitas Kimia Lanjut -->
@@ -546,7 +535,7 @@ Graph konten
 <script src="../assets/js/map-live.js"></script>
 
 <!-- then include your script -->
-<script src="../assets/js/graph-fetch.js"></script>
+
   <!--   Core JS Files   -->
   <script src="../assets/js/core/popper.min.js"></script>
   <script src="../assets/js/core/bootstrap.min.js"></script>
@@ -573,66 +562,141 @@ Graph konten
   <script type="module">
       import { graphData } from '../assets/data/graph-map.js';
     
-      // Inisialisasi Chart.js (sama seperti sebelumnya)…
-      const ctx = document.getElementById('chart').getContext('2d');
-    const chart = new Chart(ctx, {
+      const ctx1 = document.getElementById('chart1').getContext('2d');
+const ctx2 = document.getElementById('chart2').getContext('2d');
+const ctx3 = document.getElementById('chart3').getContext('2d');
+
+const chart1 = new Chart(ctx1, {
     type: 'line',
     data: {
-      labels: [], // nanti diisi lewat updateChart
-      datasets: [
-        {
-          label: 'SST',
-          data: [],
-          borderColor: 'blue',
-          fill: false,
-        },
-        {
-          label: 'Heat Stress',
-          data: [],
-          borderColor: 'orange',
-          fill: false,
-        },
-        {
-          label: 'Threshold',
-          data: [],
-          borderColor: 'red',
-          borderDash: [5, 5],
-          fill: false,
-          pointRadius: 0, // biar titik merah ga kelihatan
-        }
-      ]
+        labels: [], // Label untuk grafik 1
+        datasets: [
+            {
+                label: 'Water Temp (°C)',
+                data: [], // Data untuk Water Temp
+                borderColor: 'blue',
+                fill: false,
+            },
+            {
+                label: 'Humidity (%)',
+                data: [], // Data untuk Humidity
+                borderColor: 'green',
+                fill: false,
+            },
+            {
+                label: 'Air Temp (°C)',
+                data: [], // Data untuk Air Temp
+                borderColor: 'orange',
+                fill: false,
+            }
+        ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          min: 1,
-          max: 40,
-          title: {
-            display: true,
-            text: 'SST (°C)'
-          }
-        },
-        x: {
-    ticks: {
-      callback: function(value, index, ticks) {
-        const date = new Date(this.getLabelForValue(value));
-        return `${date.getMonth() + 1}/${date.getDate()}`; // contoh: 8/12
-      }
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                title: {
+                    display: true,
+                    text: 'Temperature / Humidity'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Time'
+                }
+            }
+        }
     }
-  }
-      }
+});
+window.chart1 = chart1;
+
+const chart2 = new Chart(ctx2, {
+    type: 'line',
+    data: {
+        labels: [], // Label untuk grafik 2
+        datasets: [
+            {
+                label: 'TSS (V)',
+                data: [], // Data untuk TSS
+                borderColor: 'purple',
+                fill: false,
+            },
+            {
+                label: 'pH',
+                data: [], // Data untuk pH
+                borderColor: 'red',
+                fill: false,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                title: {
+                    display: true,
+                    text: 'TSS / pH'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Time'
+                }
+            }
+        }
     }
-  });
-    
-function updateChart(data) {
-  chart.data.labels = data.map(d => d.date);
-  chart.data.datasets[0].data = data.map(d => d.sst);
-  chart.data.datasets[1].data = data.map(d => d.heatStress);
-  chart.data.datasets[2].data = Array(data.length).fill(30); // garis threshold tetap di 30
-  chart.update();
-}
+});
+window.chart2 = chart2;
+
+const chart3 = new Chart(ctx3, {
+    type: 'line',
+    data: {
+        labels: [], // Label untuk grafik 3
+        datasets: [
+            {
+                label: 'DO (µg/L)',
+                data: [], // Data untuk DO
+                borderColor: 'cyan',
+                fill: false,
+            },
+            {
+                label: 'EC (mS/cm)',
+                data: [], // Data untuk EC
+                borderColor: 'magenta',
+                fill: false,
+            },
+            {
+                label: 'TDS (ppm)',
+                data: [], // Data untuk TDS
+                borderColor: 'yellow',
+                fill: false,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                title: {
+                    display: true,
+                    text: 'DO / EC / TDS'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Time'
+                }
+            }
+        }
+    }
+});
+window.chart3 = chart3;
 
 const urlParams = new URLSearchParams(window.location.search);
     const locationId = urlParams.get('location');
@@ -640,6 +704,158 @@ const urlParams = new URLSearchParams(window.location.search);
         // Jika tidak ada locationId, arahkan ke map.html
         window.location.href = '/pages/map.html';
     }
+
+    function parseTs(ts) {
+  if (!ts) return null;
+  // common formats: "8/14/2025 23:59:05" or ISO
+  const isoTry = new Date(ts);
+  if (!isNaN(isoTry.getTime())) return isoTry;
+  // try slashes MM/DD/YYYY HH:MM:SS
+  try {
+    const parts = ts.split(' ');
+    const dParts = parts[0].split('/');
+    if (dParts.length === 3) {
+      const month = parseInt(dParts[0],10);
+      const day = parseInt(dParts[1],10);
+      const year = parseInt(dParts[2],10);
+      const t = parts[1] || '00:00:00';
+      const dt = new Date(year, month-1, day, ...t.split(':').map(n=>parseInt(n,10)));
+      if (!isNaN(dt.getTime())) return dt;
+    }
+  } catch(e){}
+  return new Date(ts); // best effort
+}
+
+// load cached rows for locationId: try latest.json -> sheetName.json, fallback to sensorData_YYYY-MM-DD for last N days
+async function loadCachedRowsForLocation(locationId, opts = {}) {
+  const MAX_DAYS = opts.days || 7;
+  try {
+    // Try latest meta
+    const latestRes = await fetch(`/data/${encodeURIComponent(locationId)}/latest.json`, { cache: 'no-store' });
+    if (latestRes.ok) {
+      const latest = await latestRes.json();
+      // try sheet file first
+      if (latest && latest.sheetName) {
+        const sheetFile = `/data/${encodeURIComponent(locationId)}/${encodeURIComponent(latest.sheetName)}.json`;
+        const r = await fetch(sheetFile, { cache: 'no-store' });
+        if (r.ok) {
+          const rows = await r.json();
+          // normalize rows to array-of-objects and sort by Timestamp
+          return normalizeAndSortRows(rows);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('loadCachedRowsForLocation: latest.json failed', e);
+  }
+
+  // fallback: try per-day sensorData files for last MAX_DAYS days
+  const rowsAccum = [];
+  for (let i = 0; i < MAX_DAYS; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0,10);
+    const candidate = `/data/${encodeURIComponent(locationId)}/sensorData_${dateStr}.json`;
+    try {
+      const resp = await fetch(candidate, { cache: 'no-store' });
+      if (!resp.ok) continue;
+      const partial = await resp.json();
+      if (Array.isArray(partial)) rowsAccum.push(...partial);
+    } catch (e) {
+      // ignore not found or parse error
+    }
+  }
+  return normalizeAndSortRows(rowsAccum);
+}
+
+function normalizeAndSortRows(rows) {
+  if (!rows || !Array.isArray(rows)) return [];
+  // ensure each row has Timestamp field; try various keys
+  const normalized = rows.map(r => {
+    const ts = r.Timestamp || r.timestamp || r.time || r.cachedAt || null;
+    return Object.assign({}, r, { __tsDate: parseTs(ts) });
+  }).filter(r=> r.__tsDate && !isNaN(r.__tsDate.getTime()));
+
+  normalized.sort((a,b)=> a.__tsDate - b.__tsDate);
+  return normalized;
+}
+
+/**
+ * Fill chart1/chart2/chart3 with up to last 7 points from cachedRows.
+ * - rows must be sorted ascending by timestamp (oldest -> newest)
+ */
+function fillChartsFromRows(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return;
+  // take last 7
+  const last = rows.slice(-7);
+  // map to labels and series arrays
+  const labels = last.map(r => (r.Timestamp || r.timestamp || r.time || r.cachedAt));
+  // helper to safe-get normalized key
+  const nk = k => String(k||'').trim().toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  // build arrays
+  const waterTemp = last.map(r => {
+    const v = r['Water Temp (C)'] ?? r['water_temp'] ?? r['water temp'] ?? r['WaterTemp'] ?? null;
+    return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
+  });
+  const airTemp = last.map(r => {
+    const v = r['Temp udara'] ?? r['Temp udara'] ?? r['temp udara'] ?? r['Air Temp'] ?? r['air_temp'] ?? null;
+    return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
+  });
+  const humidity = last.map(_=> null); // if no humidity sensor, placeholder
+
+  // chart1 datasets: [waterTemp, humidity, airTemp]
+  if (window.chart1) {
+    window.chart1.data.labels = labels;
+    if (window.chart1.data.datasets[0]) window.chart1.data.datasets[0].data = waterTemp;
+    if (window.chart1.data.datasets[1]) window.chart1.data.datasets[1].data = humidity;
+    if (window.chart1.data.datasets[2]) window.chart1.data.datasets[2].data = airTemp;
+    window.chart1.update();
+  }
+
+  // chart2: TSS & pH
+  const tss = last.map(r => {
+    const v = r['TSS (V)'] ?? r['tss'] ?? null;
+    return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
+  });
+  const ph = last.map(r => {
+    const v = r['pH'] ?? r['ph'] ?? null;
+    return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
+  });
+  if (window.chart2) {
+    window.chart2.data.labels = labels;
+    if (window.chart2.data.datasets[0]) window.chart2.data.datasets[0].data = tss;
+    if (window.chart2.data.datasets[1]) window.chart2.data.datasets[1].data = ph;
+    window.chart2.update();
+  }
+
+  // chart3: DO, EC, TDS
+  const doArr = last.map(r => NumberOrNull(r['DO (ug/L)'] ?? r['do']));
+  const ecArr = last.map(r => NumberOrNull(r['EC (ms/cm)'] ?? r['ec']));
+  const tdsArr = last.map(r => NumberOrNull(r['TDS (ppm)'] ?? r['tds']));
+  if (window.chart3) {
+    window.chart3.data.labels = labels;
+    if (window.chart3.data.datasets[0]) window.chart3.data.datasets[0].data = doArr;
+    if (window.chart3.data.datasets[1]) window.chart3.data.datasets[1].data = ecArr;
+    if (window.chart3.data.datasets[2]) window.chart3.data.datasets[2].data = tdsArr;
+    window.chart3.update();
+  }
+}
+
+function NumberOrNull(x) {
+  if (x === null || x === undefined || x === '') return null;
+  const n = Number(String(x).replace(/,/g,''));
+  return Number.isNaN(n) ? null : n;
+}
+
+// Usage: after charts created
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const locationId = params.get('location') || window.CLIMBOX_CONFIG && window.CLIMBOX_CONFIG.LOCATION_ID;
+  if (!locationId) return;
+  const rows = await loadCachedRowsForLocation(locationId, { days: 14 }); // lookback 14 days then take last 7 points
+  fillChartsFromRows(rows);
+})();   
+    
     window.CLIMBOX_CONFIG = {
         LOCATION_ID: locationId || 'pulau_komodo',
         POLL_SECONDS: 30,
@@ -664,51 +880,42 @@ const urlParams = new URLSearchParams(window.location.search);
 
         // Fungsi untuk memuat data lokasi dari JSON
         async function loadLocations() {
-    try {
-        const response = await fetch('../assets/data/locations.json'); // Ambil data dari JSON
-        const data = await response.json(); // Parse JSON
-        
-        // Cari lokasi yang sesuai dengan locationId
-        const foundLocation = data.find(location => location.locationId === locationId);
-        if (foundLocation) {
-            // Jika lokasi ditemukan, perbarui teks span
-            document.getElementById('location-name-display').textContent = foundLocation.name;
-            // Inisialisasi peta dengan koordinat lokasi
-            initMap(foundLocation.coord);
-        } else {
-            console.warn('Location not found:', locationId);
+        try {
+            const response = await fetch('../assets/data/locations.json');
+            const data = await response.json();
+            const foundLocation = data.find(location => location.locationId === locationId);
+            if (foundLocation) {
+                document.getElementById('location-name-display').textContent = foundLocation.name;
+                initMap(foundLocation.coord);
+            } else {
+                console.warn('Location not found:', locationId);
+            }
+        } catch (error) {
+            console.error('Error loading locations:', error);
         }
-    } catch (error) {
-        console.error('Error loading locations:', error);
     }
-}
         // Fungsi untuk menginisialisasi peta
-        function initMap(coord) {
-            const map = L.map('map').setView(coord, 6);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-            // Tambahkan marker untuk lokasi
-            const mk = L.marker(coord).addTo(map);
-            mk.bindPopup(`<strong>${locations[0].name}</strong><br><small>${locations[0].country}</small>`);
-            
-            // Immediately show chart and location list
-            updateChart(graphData);
-            renderLocationList(locations);
-        }
-        function renderLocationList(locations) {
-            const el = document.getElementById('location-list'); // atau sesuai ID aslinya
-            if (!el) return; // kalau nggak ada, langsung keluar
-            el.innerHTML = ''; // sekarang aman
-            locations.forEach(loc => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
-                li.textContent = loc.name; // Tampilkan nama lokasi
-                el.appendChild(li);
-            });
-        }
-        // Panggil fungsi untuk memuat lokasi
-        loadLocations();
+    function initMap(coord) {
+        const map = L.map('map').setView(coord, 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        const mk = L.marker(coord).addTo(map);
+        mk.bindPopup(`<strong>${locations[0].name}</strong><br><small>${locations[0].country}</small>`);
+    }
+    function renderLocationList(locations) {
+        const el = document.getElementById('location-list'); // atau sesuai ID aslinya
+        if (!el) return; // kalau nggak ada, langsung keluar
+        el.innerHTML = ''; // sekarang aman
+        locations.forEach(loc => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
+            li.textContent = loc.name; // Tampilkan nama lokasi
+            el.appendChild(li);
+        });
+    }
+    
+    loadLocations();
     </script>
     
   <!-- Github buttons -->
@@ -728,6 +935,7 @@ const urlParams = new URLSearchParams(window.location.search);
     }
   });
   </script>
+  <script src="../assets/js/graph-fetch.js"></script>
 </body>
 
 </html>

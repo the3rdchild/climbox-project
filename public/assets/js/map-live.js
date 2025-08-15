@@ -9,6 +9,33 @@
 // window.CLIMBOX_MAP_CONFIG = { MQTT_WS: 'wss://broker.emqx.io:8084/mqtt', MQTT_TOPIC_BASE: 'climbox' };
 
 (function () {
+  const locations = [
+    {
+        id: ' ',
+        name: ' ',
+        coord: [],
+        country: ' '
+    }
+];
+// Cek MQTT_WS
+console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
+
+// Fungsi untuk memuat data lokasi dari JSON
+async function loadLocations() {
+try {
+    const response = await fetch('../assets/data/locations.json');
+    const data = await response.json();
+    const foundLocation = data.find(location => location.locationId === locationId);
+    if (foundLocation) {
+        document.getElementById('location-name-display').textContent = foundLocation.name;
+        initMap(foundLocation.coord);
+    } else {
+        console.warn('Location not found:', locationId);
+    }
+} catch (error) {
+    console.error('Error loading locations:', error);
+}
+}
     const cfg = Object.assign({
       MQTT_WS: 'wss://broker.emqx.io:8084/mqtt',
       MQTT_TOPIC_BASE: 'climbox',
