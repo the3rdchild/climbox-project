@@ -1,4 +1,8 @@
 (() => {
+  const DEFAULT_RETENTION_DAYS = 30;
+  const DEFAULT_MAX_DISPLAY = 24; // Ambil 24 data awal
+  const DEFAULT_UPDATE_INTERVAL_MS = 5 * 60 * 1000; // 5 menit
+
   const cfg = Object.assign({
     LOCATION_ID: "pulau_komodo",
     CACHE_PREFIX: "climbox_cache",
@@ -133,6 +137,29 @@
   }
   window.CLIMBOX_DOWNLOAD_CACHE = () => downloadCache(cfg.LOCATION_ID || cfg.locationId);
 
+
+    // Fetch data from Google Sheets
+    async function fetchSheetData(sheetId, sheetName) {
+      const sheetParam = encodeURIComponent(sheetName);
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetParam}`;
+      const res = await fetch(url, { cache: 'no-cache' });
+      const txt = await res.text();
+      const start = txt.indexOf('{');
+      const end = txt.lastIndexOf('}');
+      if (start === -1 || end === -1) throw new Error('Invalid GViz response');
+      const jsonStr = txt.slice(start, end + 1);
+      const obj = JSON.parse(jsonStr);
+      if (!obj.table || !Array.isArray(obj.table.cols)) return [];
+      const headers = obj.table.cols.map(c => (c.label || '').trim());
+      const rows = (obj.table.rows || []).map(r => {
+        const o = {};
+        (r.c || []).forEach((cell, i) => {
+          o[headers[i] || `col${i}`] = cell && cell.v !== undefined ? cell.v : null;
+        });
+        return o;
+      });
+      return rows;
+    }
   // Process incoming rows (array of row objects)
 
   function processRowsAndRender(rows) {
