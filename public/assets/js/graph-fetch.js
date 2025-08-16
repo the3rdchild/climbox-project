@@ -1,62 +1,199 @@
+/* graph-fetch.js
+   GViz (history only) + MQTT (cards only)
+   - Expects window.chart1/chart2/chart3 to exist (created in graph.html)
+   - Expects window.CLIMBOX_CONFIG override available before load (optional)
+   - Reads sheetId from CLIMBOX_CONFIG.SHEET_ID or from locations.json mapping
+*/
 (() => {
-  const DEFAULT_RETENTION_DAYS = 30;
-  const DEFAULT_MAX_DISPLAY = 24; // Ambil 24 data awal
-  const DEFAULT_UPDATE_INTERVAL_MS = 5 * 60 * 1000; // 5 menit
-
-  const cfg = Object.assign({
-    LOCATION_ID: "pulau_komodo",
-    CACHE_PREFIX: "climbox_cache",
-    // sensor groups (label -> array of sheet header names)
-    SENSOR_GROUPS: {
-      meteorologi: ["Timestamp","Wind Direction","Wind Speed (km/h)","Temp udara"],
-      presipitasi: ["Rainfall (mm)","Distance (mm)"],
-      kualitas_fisika: ["Water Temp (C)","EC (ms/cm)"],
-      kualitas_kimia_dasar: ["TDS (ppm)","pH"],
-      kualitas_kimia_lanjut: ["DO (ug/L)"],
-      kualitas_turbiditas: ["TSS (V)"]
+  const DEFAULTS = {
+    LOCATION_ID: 'pulau_komodo',
+    HISTORY_POINTS: 20,
+    LOCATIONS_JSON: '../assets/data/locations.json',
+    GVIZ_RANGE: 'A:Z',
+    SHEET_NAME_TOKEN_DATE: '{date}',
+    CACHE_PREFIX: 'climbox_cache',
+    // keys used for chart extraction (candidate labels, lower-cased variants ok)
+    KEYS: {
+      timestamp: ['Timestamp','timestamp','time','date'],
+      water_temp: ['Water Temp (C)','water temp','water_temp','water temp (c)'],
+      air_temp: ['Temp udara','air temp','air_temp','temperature'],
+      humidity: ['Humidity','humidity','humid'],
+      tss: ['TSS (V)','tss','tss_v'],
+      ph: ['pH','ph'],
+      do_: ['DO (ug/L)','do','do_ug_l'],
+      ec: ['EC (ms/cm)','ec','ec_ms_cm'],
+      tds: ['TDS (ppm)','tds','tds_ppm']
     },
 
-    // MQTT settings (override via window.CLIMBOX_CONFIG)
-    MQTT_WS: 'wss://broker.emqx.io:8084/mqtt', // REQUIRED for MQTT; e.g. 'wss://broker.emqx.io:8084/mqtt'
+    // MQTT defaults (browser)
+    MQTT_WS: '', // e.g. 'wss://broker.emqx.io:8084/mqtt' (set via CLIMBOX_CONFIG)
     MQTT_USERNAME: '',
     MQTT_PASSWORD: '',
     MQTT_TOPIC_BASE: 'climbox',
-    MQTT_SUBSCRIBE_WILDCARD: true, // subscribe to climbox/{loc}/# if true, else climbox/{loc}/latest
-    MQTT_AUTO_DISABLE_POLL: true, // kept for parity - no effect here (no polling)
+    MQTT_SUBSCRIBE_WILDCARD: true,
     MQTT_RECONNECT_PERIOD_MS: 5000
-  }, window.CLIMBOX_CONFIG || {});
+  };
+
+  const cfg = Object.assign({}, DEFAULTS, window.CLIMBOX_CONFIG || {});
 
   // ---------- helpers ----------
-  function normalizeKey(key){
-    return String(key || "")
-      .trim()
-      .toLowerCase()
-      .replace(/\(.*?\)/g, '')
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
+  function normalizeKey(key) {
+    if (key === undefined || key === null) return '';
+    return String(key).trim().toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   }
 
-  function buildGroupForRow(rawRow){
+  function todayDateString() {
+    return new Date().toISOString().slice(0,10);
+  }
+
+  function resolveSheetNameFromMapping(mapping, explicit) {
+    if (explicit && String(explicit).trim()) {
+      const s = String(explicit).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return `data_${s}`;
+      return s;
+    }
+    const mapped = mapping && mapping.sheetName ? String(mapping.sheetName) : '';
+    if (mapped.includes(cfg.SHEET_NAME_TOKEN_DATE)) {
+      return mapped.replace(cfg.SHEET_NAME_TOKEN_DATE, todayDateString());
+    }
+    if (/^data_\d{4}-\d{2}-\d{2}$/.test(mapped)) {
+      return `data_${todayDateString()}`;
+    }
+    return mapped || `data_${todayDateString()}`;
+  }
+
+  // fetch text with no-store
+  async function fetchTextNoStore(url) {
+    const resp = await fetch(url, { cache: 'no-store' });
+    if (!resp.ok) throw new Error(`fetch ${url} failed ${resp.status}`);
+    return resp.text();
+  }
+
+  // parse GViz wrapper -> JSON
+  function parseGvizText(text) {
+    const m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)\s*;?$/);
+    if (!m || !m[1]) throw new Error('Unexpected GViz response');
+    return JSON.parse(m[1]);
+  }
+
+  // table -> array of objects
+  function tableToRows(table) {
+    if (!table || !Array.isArray(table.cols)) return [];
+    const headers = table.cols.map(c => (c.label || c.id || '').toString());
+    const rows = (table.rows || []).map(r => {
+      const obj = {};
+      for (let i=0;i<headers.length;i++){
+        const cell = r.c && r.c[i] ? r.c[i] : null;
+        const val = cell ? (cell.v !== undefined && cell.v !== null ? cell.v : (cell.f !== undefined ? cell.f : null)) : null;
+        obj[headers[i] || `col_${i}`] = val;
+      }
+      return obj;
+    });
+    return rows;
+  }
+
+  // Try to find field value in a raw row using candidate labels
+  function pickField(row, candidates) {
+    if (!row || !candidates) return null;
+    for (const cand of candidates) {
+      const norm = normalizeKey(cand);
+      const key = Object.keys(row).find(k => normalizeKey(k) === norm);
+      if (key) return row[key];
+    }
+    // fallback: case-insensitive substring match
+    const lowcands = candidates.map(c=>normalizeKey(c));
+    for (const k of Object.keys(row)) {
+      const nk = normalizeKey(k);
+      for (const lc of lowcands) {
+        if (nk.includes(lc) || lc.includes(nk)) return row[k];
+      }
+    }
+    return null;
+  }
+
+  function asNumberOrNull(v) {
+    if (v === null || v === undefined || (typeof v === 'string' && v.trim()==='')) return null;
+    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    const s = String(v).replace(/,/g,'').trim();
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  // Build grouped object (for cards) based on SENSOR_GROUPS mapping
+  const SENSOR_GROUPS = {
+    meteorologi: ["Wind Direction","Wind Speed (km/h)","Temp udara"],
+    presipitasi: ["Rainfall (mm)","Distance (mm)"],
+    kualitas_fisika: ["Water Temp (C)","EC (ms/cm)"],
+    kualitas_kimia_dasar: ["TDS (ppm)","pH"],
+    kualitas_kimia_lanjut: ["DO (ug/L)"],
+    kualitas_turbiditas: ["TSS (V)"]
+  };
+
+  function buildGroupForRow(rawRow) {
     const flat = {};
-    Object.keys(rawRow || {}).forEach(k=>{
+    Object.keys(rawRow || {}).forEach(k => {
       flat[ normalizeKey(k) ] = rawRow[k];
     });
-
-    const grouped = { timestamp: flat['timestamp'] || flat['timestamp_iso'] || flat['time'] || null, groups: {} };
-    Object.entries(cfg.SENSOR_GROUPS).forEach(([groupName, fields])=>{
-      grouped.groups[groupName] = {};
-      fields.forEach(fieldLabel=>{
-        const nk = normalizeKey(fieldLabel);
-        let rawVal = flat[nk] !== undefined ? flat[nk] : null;
-        if (rawVal !== null && rawVal !== '' && !Number.isNaN(Number(String(rawVal).replace(/,/g,'')))) {
-          rawVal = Number(String(rawVal).replace(/,/g,''));
+    const grouped = { timestamp: flat['timestamp'] || flat['time'] || flat['timestamp_iso'] || null, groups: {} };
+    for (const [gname, fields] of Object.entries(SENSOR_GROUPS)) {
+      grouped.groups[gname] = {};
+      for (const field of fields) {
+        const nk = normalizeKey(field);
+        let val = flat[nk] !== undefined ? flat[nk] : null;
+        if (val !== null && val !== '' && !Number.isNaN(Number(String(val).replace(/,/g,'')))) {
+          val = Number(String(val).replace(/,/g,''));
         }
-        grouped.groups[groupName][nk] = rawVal;
-      });
-    });
+        grouped.groups[gname][nk] = val;
+      }
+    }
     return grouped;
   }
 
+  // ---------- charts: prepare arrays ----------
+  function prepareChartArraysFromRows(rows, maxPoints = 7) {
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const slice = rows.slice(-Math.max(1, maxPoints));
+    const labels = slice.map(r => {
+      const ts = pickField(r, cfg.KEYS.timestamp);
+      if (!ts) return new Date().toISOString();
+      try {
+        const dt = new Date(ts);
+        if (!isNaN(dt.getTime())) return dt.toISOString();
+      } catch(e){}
+      return String(ts);
+    });
+
+    const c1_wt = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.water_temp)));
+    const c1_hum = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.humidity)));
+    const c1_air = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.air_temp)));
+
+    const c2_tss = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.tss)));
+    const c2_ph = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.ph)));
+
+    const c3_do = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.do_)));
+    const c3_ec = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.ec)));
+    const c3_tds = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.tds)));
+
+    return {
+      labels,
+      chart1: [c1_wt, c1_hum, c1_air],
+      chart2: [c2_tss, c2_ph],
+      chart3: [c3_do, c3_ec, c3_tds]
+    };
+  }
+
+  // safe chart setter
+  function safeSetChart(chart, labels, datasetArrays) {
+    if (!chart || !chart.data) return;
+    chart.data.labels = Array.isArray(labels) ? labels.slice() : [];
+    datasetArrays.forEach((arr, idx) => {
+      if (!chart.data.datasets[idx]) return;
+      chart.data.datasets[idx].data = Array.isArray(arr) ? arr.slice() : [];
+    });
+    try { chart.update(); } catch(e){ console.warn('chart update failed', e); }
+  }
+
+  // ---------- cards rendering ----------
   function getTargetCards(){
     const container = document.querySelector('.container-fluid.py-4 .row.g-3');
     if(!container) return [];
@@ -114,285 +251,183 @@
     });
   }
 
-  // localStorage caching
-  function cacheKeyForLocation(loc) { return `${cfg.CACHE_PREFIX}_sensor_${loc}`; }
-  function saveCache(locationId, payload) {
-    try { localStorage.setItem(cacheKeyForLocation(locationId), JSON.stringify(payload)); }
-    catch (e) { console.warn('saveCache error', e); }
-  }
-  function loadCache(locationId) {
-    try {
-      const s = localStorage.getItem(cacheKeyForLocation(locationId));
-      return s ? JSON.parse(s) : null;
-    } catch (e) { return null; }
-  }
-  function downloadCache(locationId){
-    const payload = loadCache(locationId);
-    if(!payload) return alert('No cache available');
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${locationId}_sensor_cache_${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-  }
-  window.CLIMBOX_DOWNLOAD_CACHE = () => downloadCache(cfg.LOCATION_ID || cfg.locationId);
-
-
-    // Fetch data from Google Sheets
-    async function fetchSheetData(sheetId, sheetName) {
-      const sheetParam = encodeURIComponent(sheetName);
-      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetParam}`;
-      const res = await fetch(url, { cache: 'no-cache' });
-      const txt = await res.text();
-      const start = txt.indexOf('{');
-      const end = txt.lastIndexOf('}');
-      if (start === -1 || end === -1) throw new Error('Invalid GViz response');
-      const jsonStr = txt.slice(start, end + 1);
-      const obj = JSON.parse(jsonStr);
-      if (!obj.table || !Array.isArray(obj.table.cols)) return [];
-      const headers = obj.table.cols.map(c => (c.label || '').trim());
-      const rows = (obj.table.rows || []).map(r => {
-        const o = {};
-        (r.c || []).forEach((cell, i) => {
-          o[headers[i] || `col${i}`] = cell && cell.v !== undefined ? cell.v : null;
-        });
-        return o;
-      });
-      return rows;
-    }
-  // Process incoming rows (array of row objects)
-
-  function processRowsAndRender(rows) {
+  function processRowsAndRenderCards(rows){
     if (!rows || !Array.isArray(rows) || rows.length === 0) return;
     const lastRow = rows[rows.length - 1];
     const grouped = buildGroupForRow(lastRow);
-    // update UI
     const cards = getTargetCards();
     const order = ['meteorologi','presipitasi','kualitas_fisika','kualitas_kimia_dasar','kualitas_kimia_lanjut','kualitas_turbiditas'];
     order.forEach((grpName, i) => {
-        const cardEl = cards[i];
-        const groupData = grouped.groups[grpName] || {};
-        renderGroupToCard(cardEl, grpName, groupData, grouped.timestamp);
+      const cardEl = cards[i];
+      const groupData = grouped.groups[grpName] || {};
+      renderGroupToCard(cardEl, grpName, groupData, grouped.timestamp);
     });
-    // Update grafik dengan data
-    chart1.data.labels.push(grouped.timestamp); // Tambahkan timestamp ke label
-    chart1.data.datasets[0].data.push(grouped.groups.kualitas_fisika['water_temp']); // Water Temp
-    chart1.data.datasets[1].data.push(grouped.groups.meteorologi['humidity']); // Humidity
-    chart1.data.datasets[2].data.push(grouped.groups.meteorologi['air_temp']); // Air Temp
-    chart1.update();
-    chart2.data.labels.push(grouped.timestamp); // Tambahkan timestamp ke label
-    chart2.data.datasets[0].data.push(grouped.groups.kualitas_turbiditas['tss']); // TSS
-    chart2.data.datasets[1].data.push(grouped.groups.kualitas_kimia_dasar['ph']); // pH
-    chart2.update();
-    chart3.data.labels.push(grouped.timestamp); // Tambahkan timestamp ke label
-    chart3.data.datasets[0].data.push(grouped.groups.kualitas_kimia_lanjut['do']); // DO
-    chart3.data.datasets[1].data.push(grouped.groups.kualitas_fisika['ec']); // EC
-    chart3.data.datasets[2].data.push(grouped.groups.kualitas_kimia_dasar['tds']); // TDS
-    chart3.update();
-    saveCache(cfg.LOCATION_ID || cfg.locationId, {
-      fetchedAt: new Date().toISOString(),
-      lastTimestamp: grouped.timestamp,
-      raw: rows,
-      grouped
-  });
-}
+    // cache fallback
+    try {
+      localStorage.setItem(`${cfg.CACHE_PREFIX}_sensor_${cfg.LOCATION_ID}`, JSON.stringify({
+        fetchedAt: new Date().toISOString(),
+        lastTimestamp: grouped.timestamp,
+        raw: rows,
+        grouped
+      }));
+    } catch(e){}
+  }
 
-  // ---------- MQTT (browser) ----------
-  // Menggunakan versi spesifik yang stabil atau yang paling baru jika tidak ada masalah
-  const mqttScriptUrl = 'https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js'; // Menggunakan versi spesifik
-  let mqttClient = null;
-  let mqttConnected = false;
-  let mqttSubscribed = false;
+  // ---------- GViz fetch helper ----------
+  async function fetchSheetViaGviz(sheetId, sheetName, range=cfg.GVIZ_RANGE) {
+    if (!sheetId) throw new Error('sheetId missing');
+    const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}&tqx=out:json`;
+    const txt = await fetchTextNoStore(url);
+    // detect HTML responses (not JSON) - usually means not public or blocked
+    if (txt.trim().startsWith('<')) throw new Error('GViz returned HTML (sheet likely not public or blocked)');
+    const parsed = parseGvizText(txt);
+    const rows = tableToRows(parsed.table);
+    return rows;
+  }
+
+  // ---------- MQTT (browser) for cards ----------
+  const mqttScriptUrl = 'https://unpkg.com/mqtt/dist/mqtt.min.js';
+  let mqttClient = null, mqttConnected = false, mqttSubscribed = false;
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
-      // Cek apakah skrip sudah ada di DOM
       if (document.querySelector(`script[src="${src}"]`)) {
-        console.log(`Script already loaded: ${src}`);
-        // Jika sudah ada, pastikan window.mqtt tersedia sebelum resolve
-        if (window.mqtt) {
-          resolve();
-        } else {
-          // Jika skrip sudah ada tapi window.mqtt belum, tunggu sebentar atau reject
-          // Ini bisa terjadi jika skrip dimuat oleh bagian lain dari HTML
-          const checkInterval = setInterval(() => {
-            if (window.mqtt) {
-              clearInterval(checkInterval);
-              resolve();
-            }
-          }, 100); // Cek setiap 100ms
-          setTimeout(() => {
-            if (!window.mqtt) {
-              clearInterval(checkInterval);
-              reject(new Error('mqtt lib not available after script load check'));
-            }
-          }, 5000); // Timeout setelah 5 detik
-        }
+        if (window.mqtt) return resolve();
+        const t = setInterval(()=>{ if (window.mqtt){ clearInterval(t); resolve(); } }, 100);
+        setTimeout(()=>{ if (!window.mqtt) reject(new Error('mqtt lib not available')); }, 4000);
         return;
       }
-
-      const s = document.createElement('script');
-      s.src = src;
-      s.async = true;
-      s.onload = () => {
-        console.log(`Script loaded: ${src}`);
-        if (window.mqtt) {
-          resolve();
-        } else {
-          // Jika skrip dimuat tapi window.mqtt belum tersedia, mungkin ada masalah inisialisasi di library itu sendiri
-          console.warn('mqtt script loaded, but window.mqtt is not defined immediately.');
-          // Tambahkan sedikit delay untuk memastikan window.mqtt terinisialisasi
-          setTimeout(() => {
-            if (window.mqtt) {
-              resolve();
-            } else {
-              reject(new Error('mqtt lib not available after script load and short delay'));
-            }
-          }, 100);
-        }
-      };
-      s.onerror = (e) => {
-        console.error(`Failed to load script: ${src}`, e);
-        reject(e);
-      };
+      const s = document.createElement('script'); s.src = src; s.async = true;
+      s.onload = () => { if (window.mqtt) resolve(); else setTimeout(()=> window.mqtt ? resolve() : reject(new Error('mqtt lib missing after load')), 50); };
+      s.onerror = (e) => reject(e);
       document.head.appendChild(s);
     });
   }
 
   async function initMqttIfEnabled() {
     if (!cfg.MQTT_WS) {
-      console.log('MQTT disabled (MQTT_WS not provided) — only cache rendering active');
+      console.log('MQTT disabled (MQTT_WS not provided)');
       return;
     }
-
     try {
-      console.log('Attempting to load MQTT client script...');
       await loadScript(mqttScriptUrl);
-      console.log('MQTT client script loaded.');
-    } catch (e) {
-      console.warn('Failed to load mqtt client script:', e);
+    } catch(e) {
+      console.warn('Failed to load mqtt lib', e);
       return;
     }
-
     if (!window.mqtt) {
-      console.warn('mqtt lib missing after load - window.mqtt is still undefined.');
+      console.warn('mqtt lib not found after load');
       return;
     }
-
     const opts = {
       username: cfg.MQTT_USERNAME || undefined,
       password: cfg.MQTT_PASSWORD || undefined,
       reconnectPeriod: cfg.MQTT_RECONNECT_PERIOD_MS || 5000,
-      connectTimeout: 10 * 1000
+      connectTimeout: 10*1000
     };
-
     try {
       mqttClient = window.mqtt.connect(cfg.MQTT_WS, opts);
-
-      mqttClient.on('connect', () => {
-        mqttConnected = true;
-        console.log('MQTT connected (browser)');
-        ensureSubscribe();
-      });
+      mqttClient.on('connect', () => { mqttConnected = true; ensureSubscribe(); console.log('MQTT connected (browser)'); });
       mqttClient.on('reconnect', () => console.log('MQTT reconnecting...'));
-      mqttClient.on('error', (err) => console.warn('MQTT error', err && err.message ? err.message : err));
       mqttClient.on('close', () => { mqttConnected = false; mqttSubscribed = false; console.log('MQTT closed'); });
       mqttClient.on('offline', () => { mqttConnected = false; });
-
+      mqttClient.on('error', (err) => console.warn('MQTT error', err && err.message ? err.message : err));
       mqttClient.on('message', (topic, message) => {
         try {
           const txt = message.toString();
           let payload = null;
-          try { payload = JSON.parse(txt); } catch (e) {
-            // sometimes broker may wrap messages weirdly; try to salvage as single-line object
-            console.warn('Unable to JSON.parse mqtt message, raw text:', txt);
-            return;
-          }
-
-          // Determine rows:
+          try { payload = JSON.parse(txt); } catch(e) { console.warn('mqtt msg non-json', topic); return; }
           let rows = null;
-          if (Array.isArray(payload)) {
-            rows = payload;
-          } else if (payload && Array.isArray(payload.rows)) {
-            rows = payload.rows;
-          } else if (payload && Array.isArray(payload.data)) {
-            rows = payload.data;
-          } else if (payload && typeof payload === 'object' && Object.keys(payload).length > 0 && payload.Timestamp) {
-            // single-row object (looks like sheet row) -> wrap
-            rows = [payload];
-          } else if (payload && typeof payload === 'object' && Object.values(payload).some(v=>Array.isArray(v))) {
-            // sometimes payload may be { something: { rows: [...] } } - try to find first array
-            for (const val of Object.values(payload)) {
-              if (Array.isArray(val)) { rows = val; break; }
-            }
+          if (Array.isArray(payload)) rows = payload;
+          else if (payload && Array.isArray(payload.rows)) rows = payload.rows;
+          else if (payload && Array.isArray(payload.data)) rows = payload.data;
+          else if (payload && payload.Timestamp) rows = [payload];
+          else if (payload && typeof payload === 'object' && Object.values(payload).some(v=>Array.isArray(v))) {
+            for (const v of Object.values(payload)) if (Array.isArray(v)) { rows = v; break; }
           }
-
-          if (!rows || !Array.isArray(rows) || rows.length === 0) {
-            console.warn('MQTT message received but no usable rows found. topic:', topic);
-            return;
-          }
-
-          processRowsAndRender(rows);
-        } catch (e) {
-          console.error('Error handling mqtt message', e);
-        }
+          if (!rows || !Array.isArray(rows) || rows.length === 0) { console.warn('MQTT message with no usable rows', topic); return; }
+          processRowsAndRenderCards(rows);
+        } catch(e) { console.error('Error handling mqtt message', e); }
       });
-    } catch (e) {
-      console.warn('initMqttIfEnabled failed', e);
+    } catch(e) {
+      console.warn('mqtt connect failed', e);
     }
   }
 
   function ensureSubscribe() {
     if (!mqttClient || !mqttConnected || mqttSubscribed) return;
-    const topic = cfg.MQTT_SUBSCRIBE_WILDCARD
-      ? `${(cfg.MQTT_TOPIC_BASE||'climbox')}/${cfg.LOCATION_ID}/#`
-      : `${(cfg.MQTT_TOPIC_BASE||'climbox')}/${cfg.LOCATION_ID}/latest`;
-
+    const topic = cfg.MQTT_SUBSCRIBE_WILDCARD ? `${cfg.MQTT_TOPIC_BASE}/${cfg.LOCATION_ID}/#` : `${cfg.MQTT_TOPIC_BASE}/${cfg.LOCATION_ID}/latest`;
     mqttClient.subscribe(topic, { qos: 1 }, (err) => {
       if (err) console.warn('mqtt subscribe error', err);
       else { mqttSubscribed = true; console.log('Subscribed to', topic); }
     });
   }
 
-  // ---------- init ----------
-  function renderFromCacheIfAvailable() {
-    const cache = loadCache(cfg.LOCATION_ID || cfg.locationId);
-    if (cache && cache.grouped) {
-      console.log(`💾 Rendering from cache for ${cfg.LOCATION_ID}`, cache);
-      const cards = getTargetCards();
-      const order = ['meteorologi','presipitasi','kualitas_fisika','kualitas_kimia_dasar','kualitas_kimia_lanjut','kualitas_turbiditas'];
-      order.forEach((grpName, i) => {
-        const cardEl = cards[i];
-        const groupData = cache.grouped.groups[grpName] || {};
-        renderGroupToCard(cardEl, grpName, groupData, cache.grouped.timestamp);
-      });
+  // ---------- load locations map ----------
+  async function loadLocationsMap() {
+    try {
+      const r = await fetch(cfg.LOCATIONS_JSON, { cache: 'no-store' });
+      if (!r.ok) throw new Error('locations.json fetch failed');
+      return await r.json();
+    } catch(e) {
+      console.warn('loadLocationsMap failed', e);
+      return [];
     }
   }
 
-  async function init(){
-    if(window.CLIMBOX_CONFIG) Object.assign(cfg, window.CLIMBOX_CONFIG);
+  // ---------- main init ----------
+  async function init() {
+    if (window.CLIMBOX_CONFIG) Object.assign(cfg, window.CLIMBOX_CONFIG);
+    const urlParams = new URLSearchParams(window.location.search);
+    const qloc = urlParams.get('location');
+    cfg.LOCATION_ID = cfg.LOCATION_ID || qloc || 'pulau_komodo';
 
-    // Pastikan LOCATION_ID di cfg sudah terupdate dari window.CLIMBOX_CONFIG
-    // sebelum digunakan oleh renderFromCacheIfAvailable dan initMqttIfEnabled
-    cfg.LOCATION_ID = window.CLIMBOX_CONFIG.LOCATION_ID || cfg.LOCATION_ID;
-    cfg.MQTT_WS = window.CLIMBOX_CONFIG.MQTT_WS || cfg.MQTT_WS; // Pastikan MQTT_WS juga terupdate
+    // load mapping to get sheetId if not set
+    const locs = await loadLocationsMap();
+    const mapping = (locs || []).find(l => l.locationId === cfg.LOCATION_ID || l.id === cfg.LOCATION_ID) || null;
+    const sheetId = cfg.SHEET_ID || (mapping && mapping.sheetId) || null;
+    const sheetName = resolveSheetNameFromMapping(mapping, cfg.SHEET_NAME || null);
 
-    renderFromCacheIfAvailable();
+    // attempt to render from GViz
+    if (sheetId) {
+      try {
+        const rows = await fetchSheetViaGviz(sheetId, sheetName, cfg.GVIZ_RANGE);
+        const prepared = prepareChartArraysFromRows(rows, parseInt(cfg.HISTORY_POINTS || 7, 10));
+        if (prepared) {
+          safeSetChart(window.chart1, prepared.labels, prepared.chart1);
+          safeSetChart(window.chart2, prepared.labels, prepared.chart2);
+          safeSetChart(window.chart3, prepared.labels, prepared.chart3);
+        } else {
+          console.warn('No prepared data from GViz');
+        }
+        // Also update cards from last row if present
+        if (Array.isArray(rows) && rows.length) processRowsAndRenderCards(rows);
+        console.log('GViz loaded', { locationId: cfg.LOCATION_ID, sheetId, sheetName, rows: Array.isArray(rows)?rows.length:null });
+      } catch (e) {
+        // GViz may return HTML if sheet not public -> surface clear warning
+        console.warn('GViz fetch/render failed (history). Make sure sheet is public if you want GViz. Error:', e && e.message ? e.message : e);
+      }
+    } else {
+      console.warn('No sheetId available for GViz history (set window.CLIMBOX_CONFIG.SHEET_ID or add to locations.json)');
+    }
 
-    // MQTT-only mode: try to init MQTT
-    await initMqttIfEnabled();
+    // init MQTT for cards (does not update charts)
+    try {
+      await initMqttIfEnabled();
+    } catch(e){ console.warn('mqtt init err', e); }
 
-    console.log('graph-fetch (MQTT-only) initialized', cfg);
+    console.log('graph-fetch initialized', { locationId: cfg.LOCATION_ID, sheetId, sheetName });
   }
 
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  // Expose debug helpers
-  window.CLIMBOX = Object.assign(window.CLIMBOX || {}, {
-    downloadCache: () => downloadCache(cfg.LOCATION_ID || cfg.locationId),
-    loadCache: () => loadCache(cfg.LOCATION_ID || cfg.locationId),
-    mqttClient: () => mqttClient,
-    cfg
+  // Expose debug API
+  window.CLIMBOX_GRAPH_FETCH = Object.assign(window.CLIMBOX_GRAPH_FETCH || {}, {
+    cfg,
+    fetchSheetViaGviz,
+    prepareChartArraysFromRows,
+    processRowsAndRenderCards,
+    mqttClient: () => mqttClient
   });
 })();

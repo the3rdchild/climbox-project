@@ -560,13 +560,12 @@ Graph konten
        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <script type="module">
-      import { graphData } from '../assets/data/graph-map.js';
-    
-      const ctx1 = document.getElementById('chart1').getContext('2d');
-const ctx2 = document.getElementById('chart2').getContext('2d');
-const ctx3 = document.getElementById('chart3').getContext('2d');
+   
+    const ctx1 = document.getElementById('chart1').getContext('2d');
+    const ctx2 = document.getElementById('chart2').getContext('2d');
+    const ctx3 = document.getElementById('chart3').getContext('2d');
 
-const chart1 = new Chart(ctx1, {
+    const chart1 = new Chart(ctx1, {
     type: 'line',
     data: {
         labels: [], // Label untuk grafik 1
@@ -644,7 +643,8 @@ const chart2 = new Chart(ctx2, {
             x: {
                 title: {
                     display: true,
-                    text: 'Time'
+                    text: 'Time',
+                    
                 }
             }
         }
@@ -698,14 +698,14 @@ const chart3 = new Chart(ctx3, {
 });
 window.chart3 = chart3;
 
-const urlParams = new URLSearchParams(window.location.search);
-    const locationId = urlParams.get('location');
-    if (!locationId) {
-        // Jika tidak ada locationId, arahkan ke map.html
-        window.location.href = '/pages/map.html';
-    }
+  const urlParams = new URLSearchParams(window.location.search);
+  const locationId = urlParams.get('location');
+  if (!locationId) {
+      // Jika tidak ada locationId, arahkan ke map.html
+      window.location.href = '/pages/map.html';
+  }
 
-    function parseTs(ts) {
+  function parseTs(ts) {
   if (!ts) return null;
   // common formats: "8/14/2025 23:59:05" or ISO
   const isoTry = new Date(ts);
@@ -916,7 +916,8 @@ function NumberOrNull(x) {
     }
     
     loadLocations();
-    </script>
+  </script>
+  <script src="../assets/js/graph-fetch.js"></script>
     
   <!-- Github buttons -->
   <script async defer src="https://buttons.github.io/buttons.js"></script>
@@ -935,7 +936,7 @@ function NumberOrNull(x) {
     }
   });
   </script>
-  <script src="../assets/js/graph-fetch.js"></script>
+
 </body>
 
 </html>
