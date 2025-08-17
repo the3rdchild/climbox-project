@@ -259,21 +259,16 @@
         </div>
         <!-- Chart + list (6/12) -->
         <div class="col-12 col-xl-6 h-50 d-flex flex-column" style="margin-top: 20px;">
-            <div style="
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          ">
-              <a class="font-weight-bold">Lihat Data</a>
-              <a class="font-weight-bold">[Pilih Lokasi Sensor]</a>
-              <a class="font-weight-bold">Lebih Lanjut...</a>
-            </div>
+          <!-- Chart -->
+          <a class="font-weight-bold text-primary" style="margin-left: 20px; text-align: center;">
+            Lihat Data [Pilih Lokasi Sensor]
+          </a>
+
 
           <div class="flex-grow-1 p-3 responsive-chart">
-            <canvas id="chart" style="width:100%; height:100%;"></canvas>
-          </div>   
+            <canvas id="chart1" style="width:100%; height:100%;"></canvas> <!-- Grafik 1 -->
+        </div>
+          <!-- List lokasi di bawah chart -->
           <div class="p-3 border-top" style="background:#f8f9fa;">
             <h6>Daftar Lokasi Sensor</h6>
             <ul id="location-list" class="list-group list-group-flush">
@@ -288,222 +283,324 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- your existing code that defines locations, initializes map, creates markers -->
-
   <script src="../assets/js/map-live.js"></script>
   <script type="module">
-    /* map -> use graph-fetch.js APIs to load charts for clicked location (chart1/chart2/chart3) */
+    /*
+      Map + single chart (chart1) per location:
+      - Requires: Chart.js and Leaflet included in the page
+      - Expects ../assets/data/locations.json entries to include "locationId", "name", "coord", "country", "sheetId" (optional sheetName)
+    */
     
-    function todayDateString(){ return new Date().toISOString().slice(0,10); }
+    const CONFIG = {
+      LOCATIONS_JSON: '../assets/data/locations.json',
+      GVIZ_RANGE: 'A:Z',
+      HISTORY_POINTS: 24, // how many last points to show on chart1
+    };
+    
+    // ------------------ utilities ------------------
     function pad(n){ return String(n).padStart(2,'0'); }
     
-    function waitFor(condFn, timeout = 3000, interval = 80){
-      const start = Date.now();
-      return new Promise(resolve=>{
-        (function tick(){
-          try { if (condFn()) return resolve(true); } catch(e){}
-          if (Date.now() - start > timeout) return resolve(false);
-          setTimeout(tick, interval);
-        })();
-      });
+    function normalizeKey(key){
+      if (!key && key !== 0) return '';
+      return String(key).trim().toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
     }
     
-    async function fetchJsonNoStore(url){
-      const r = await fetch(url, { cache: 'no-store' });
-      if (!r.ok) throw new Error(`${url} ${r.status}`);
-      return r.json();
+    function asNumberOrNull(v){
+      if (v === null || v === undefined || String(v).trim() === '') return null;
+      const n = Number(String(v).replace(/,/g,''));
+      return Number.isFinite(n) ? n : null;
     }
     
-    // fallback loader similar to graph.html's fallback
-    async function loadCachedRowsForLocation(locationId, days=7){
-      if (!locationId) return [];
-      // try latest.json -> sheetName.json first
-      try {
-        const latest = await fetchJsonNoStore(`/data/${encodeURIComponent(locationId)}/latest.json`);
-        if (latest && latest.sheetName) {
-          const sheetFile = `/data/${encodeURIComponent(locationId)}/${encodeURIComponent(latest.sheetName)}.json`;
-          try {
-            const rows = await fetchJsonNoStore(sheetFile);
-            if (Array.isArray(rows)) return rows;
-          } catch(e){}
+    // Parse GViz Date(...) string, ISO, numeric, or MM/DD/YYYY hh:mm:ss
+    function parseMaybeGvizDate(v){
+      if (v === null || v === undefined) return null;
+    
+      // GViz: "Date(2025,7,16,16,6,5)"
+      if (typeof v === 'string' && v.trim().startsWith('Date(')){
+        const m = /Date\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*(\d+))?\s*\)/.exec(v);
+        if (m){
+          return new Date(Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6]||0));
         }
-      } catch(e) { /* ignore */ }
-    
-      // fallback to daily files
-      const acc = [];
-      for (let i=0;i<days;i++){
-        const d = new Date(); d.setDate(d.getDate()-i);
-        const ds = d.toISOString().slice(0,10);
-        const candidate = `/data/${encodeURIComponent(locationId)}/sensorData_${ds}.json`;
-        try {
-          const r = await fetch(candidate, { cache: 'no-store' });
-          if (!r.ok) continue;
-          const partial = await r.json();
-          if (Array.isArray(partial)) acc.push(...partial);
-        } catch(e){}
       }
-      return acc;
-    }
     
-    // safe chart setter (same behavior as graph-fetch.js safeSetChart)
-    function safeSetChart(chart, labels, datasetArrays){
-      if (!chart || !chart.data) return;
-      chart.data.labels = Array.isArray(labels) ? labels.slice() : [];
-      datasetArrays.forEach((arr, idx) => {
-        if (!chart.data.datasets[idx]) return;
-        chart.data.datasets[idx].data = Array.isArray(arr) ? arr.slice() : [];
-      });
-      try { chart.update(); } catch(e){ console.warn('safeSetChart update failed', e); }
-    }
+      // Date object
+      if (v instanceof Date){
+        if (!isNaN(v.getTime())) return v;
+      }
     
-    // small helper to resolve sheetName token {date}
-    function resolveSheetName(mapping){
-      if (!mapping) return `data_${todayDateString()}`;
-      const s = mapping.sheetName || mapping.sheetNameToken || '';
-      if (s && s.includes('{date}')) return s.replace('{date}', todayDateString());
-      if (s) return s;
-      return `data_${todayDateString()}`;
-    }
+      // numeric epoch
+      if (typeof v === 'number' && Number.isFinite(v)){
+        const d = new Date(v);
+        if (!isNaN(d.getTime())) return d;
+      }
     
-    // ----------------- map + click handlers -----------------
-    const locations = []; // filled by loadLocations()
-    
-    async function loadLocations(){
+      // ISO or other string
       try {
-        const data = await fetchJsonNoStore('../assets/data/locations.json');
-        data.forEach(l => locations.push(l));
-        renderMap();
+        const d = new Date(String(v));
+        if (!isNaN(d.getTime())) return d;
+      } catch(e){}
+    
+      // MM/DD/YYYY HH:MM:SS
+      try {
+        const s = String(v).trim();
+        const parts = s.split(' ');
+        if (parts[0] && parts[0].includes('/')){
+          const dp = parts[0].split('/');
+          if (dp.length === 3){
+            const month = parseInt(dp[0],10);
+            const day = parseInt(dp[1],10);
+            const year = parseInt(dp[2],10);
+            const tpart = parts[1] || '00:00:00';
+            const tnums = tpart.split(':').map(x => parseInt(x,10) || 0);
+            const dt = new Date(year, month-1, day, tnums[0]||0, tnums[1]||0, tnums[2]||0);
+            if (!isNaN(dt.getTime())) return dt;
+          }
+        }
+      } catch(e){}
+    
+      return null;
+    }
+    
+    // pick best field name from row based on candidates
+    function pickField(row, candidates){
+      if (!row) return null;
+      for (const cand of candidates){
+        const norm = normalizeKey(cand);
+        const found = Object.keys(row).find(k => normalizeKey(k) === norm);
+        if (found) return row[found];
+      }
+      return null;
+    }
+    
+    // ------------------ GViz fetch/conversion ------------------
+    async function fetchJsonText(url){
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Fetch ${url} failed status ${res.status}`);
+      return res.text();
+    }
+    function parseGvizText(text){
+      const m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)\s*;?/);
+      if (!m || !m[1]) throw new Error('Unexpected GViz response');
+      return JSON.parse(m[1]);
+    }
+    function tableToRows(table){
+      if (!table || !Array.isArray(table.cols) || !Array.isArray(table.rows)) return [];
+      const headers = table.cols.map(c => (c.label || c.id || '').toString());
+      return table.rows.map(r => {
+        const obj = {};
+        for (let i=0;i<headers.length;i++){
+          const cell = r.c && r.c[i] ? r.c[i] : null;
+          const val = cell ? (cell.v !== undefined && cell.v !== null ? cell.v : (cell.f !== undefined ? cell.f : null)) : null;
+          obj[headers[i] || `col_${i}`] = val;
+        }
+        return obj;
+      });
+    }
+    
+    async function fetchSheetViaGviz(sheetId, sheetName, range='A:Z'){
+      if (!sheetId) throw new Error('sheetId missing');
+      // Note: sheetName must be tab name (e.g. data_2025-08-16)
+      const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}&tqx=out:json`;
+      const text = await fetchJsonText(url);
+      const parsed = parseGvizText(text);
+      return tableToRows(parsed.table);
+    }
+    
+    // ------------------ Prepare chart1 arrays (labels HH:MM:SS + 3 series) ------------------
+    const KEYS = {
+      timestamp: ['timestamp', 'time', 'date','timestamp_iso'],
+      water_temp: ['water temp (c)','water_temp','water temp','watertemp','water_temp_c'],
+      air_temp: ['temp udara','air temp','air_temp','temperature'],
+      humidity: ['humidity','humid','relative humidity']
+    };
+    
+    function prepareChart1FromRows(rows, maxPoints = CONFIG.HISTORY_POINTS){
+      if (!Array.isArray(rows)) return null;
+      const slice = rows.slice(-maxPoints); // oldest->newest order
+      const labels = slice.map(r => {
+        const rawTs = pickField(r, KEYS.timestamp) ?? (r.Timestamp || r.Time || r.time || null);
+        const dt = parseMaybeGvizDate(rawTs);
+        if (dt){
+          return `${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+        }
+        // fallback to stringified value
+        return rawTs !== null && rawTs !== undefined ? String(rawTs).slice(0,8) : '';
+      });
+    
+      const water = slice.map(r => asNumberOrNull(pickField(r, KEYS.water_temp)));
+      const hum   = slice.map(r => asNumberOrNull(pickField(r, KEYS.humidity)));
+      const air   = slice.map(r => asNumberOrNull(pickField(r, KEYS.air_temp)));
+    
+      return { labels, water, hum, air };
+    }
+    
+    // Format sheetName default: mapping.sheetName or data_YYYY-MM-DD
+    function todaySheetName(){
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `data_${y}-${m}-${dd}`;
+    }
+    function getSheetNameFromMapping(mapping){
+      if (!mapping) return todaySheetName();
+      if (mapping.sheetName && String(mapping.sheetName).includes('{date}')){
+        return mapping.sheetName.replace('{date}', new Date().toISOString().slice(0,10));
+      }
+      if (/^data_\d{4}-\d{2}-\d{2}$/.test(String(mapping.sheetName || ''))) {
+        // if mapping already a data_yyyy-mm-dd pattern, assume today's file
+        return todaySheetName();
+      }
+      return mapping.sheetName || todaySheetName();
+    }
+    
+    // ------------------ Chart initialization ------------------
+    const ctx1 = document.getElementById('chart1')?.getContext?.('2d');
+    if (!ctx1) {
+      console.warn('chart1 canvas not found (id="chart1")');
+    }
+    const chart1 = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Water Temp (°C)', data: [], borderColor: 'blue', fill: false },
+          { label: 'Humidity (%)', data: [], borderColor: 'green', fill: false },
+          { label: 'Air Temp (°C)', data: [], borderColor: 'orange', fill: false }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { title: { display: true, text: 'Temperature / Humidity' } },
+          x: { title: { display: true, text: 'Time (HH:MM:SS)' } }
+        }
+      }
+    });
+    window.chart1 = chart1;
+    
+    // Update UI label element if any
+    function setLocationTitle(elId, title){
+      try { const el = document.getElementById(elId); if (el) el.textContent = title; } catch(e){}
+    }
+    
+    // Update chart1 with prepared arrays
+    function updateChart1FromPrepared(prep){
+      if (!prep) return;
+      chart1.data.labels = prep.labels;
+      if (chart1.data.datasets[0]) chart1.data.datasets[0].data = prep.water;
+      if (chart1.data.datasets[1]) chart1.data.datasets[1].data = prep.hum;
+      if (chart1.data.datasets[2]) chart1.data.datasets[2].data = prep.air;
+      try { chart1.update(); } catch(e){ console.warn('chart1 update failed', e); }
+    }
+    
+    // ------------------ Map + UI ------------------
+    let LOCATIONS = []; // filled from JSON
+    
+    async function loadLocationsAndRender(){
+      try {
+        const res = await fetch(CONFIG.LOCATIONS_JSON, { cache: 'no-store' });
+        if (!res.ok) throw new Error('locations.json fetch failed ' + res.status);
+        LOCATIONS = await res.json();
+        renderMapAndList();
       } catch (e) {
-        console.error('Error loading locations.json', e);
+        console.error('loadLocations error', e);
       }
     }
     
-    async function renderMap(){
-      const map = L.map('map').setView([-8.525, 119.501], 6);
+    function renderMapAndList(){
+      // init map
+      const initial = (LOCATIONS && LOCATIONS.length && LOCATIONS[0].coord) ? LOCATIONS[0].coord : [-8.525, 119.501];
+      const map = L.map('map').setView(initial, 6);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
     
-      // ensure CLIMBOX_GRAPH_FETCH ready (graph-fetch.js)
-      const ready = await waitFor(()=> window.CLIMBOX_GRAPH_FETCH && typeof window.CLIMBOX_GRAPH_FETCH.fetchSheetViaGviz === 'function', 4000);
-      if (!ready) console.warn('graph-fetch API not ready — chart loading may fail on click.');
-    
-      locations.forEach(loc => {
-        const mk = L.marker(loc.coord).addTo(map);
-        mk.bindPopup(`<strong>${loc.name}</strong><br><small>${loc.country}</small>`);
+      // markers
+      LOCATIONS.forEach(loc => {
+        const mk = L.marker(loc.coord || initial).addTo(map);
+        mk.bindPopup(`<strong>${loc.name}</strong><br><small>${loc.country||''}</small>`);
         mk.on('click', async () => {
-          await onLocationClick(loc);
+          await onLocationSelected(loc);
+          // existing hook if you had one
+          if (window.MAP_LIVE && typeof window.MAP_LIVE.onMarkerClicked === 'function') {
+            try { window.MAP_LIVE.onMarkerClicked(loc); } catch(e){}
+          }
         });
       });
     
-      renderLocationList(locations);
-    }
-    
-    function renderLocationList(locs){
+      // render location list (hidden until user clicks header in your UI logic)
       const ul = document.getElementById('location-list');
-      if (!ul) return;
-      ul.innerHTML = '';
-      locs.forEach(loc => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
-        li.textContent = loc.name;
-        li.addEventListener('click', async () => {
-          await onLocationClick(loc);
+      if (ul) {
+        ul.innerHTML = '';
+        LOCATIONS.forEach(loc => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item list-group-item-action';
+          li.textContent = loc.name;
+          li.onclick = async () => { await onLocationSelected(loc); };
+          ul.appendChild(li);
         });
-        ul.appendChild(li);
-      });
-    }
+      }
     
-    // When user clicks a location (marker or list entry)
-    async function onLocationClick(loc){
-      try {
-        // keep MAP_LIVE UI in sync (graph-link text)
-        if (window.MAP_LIVE && typeof window.MAP_LIVE.setGraphLink === 'function') {
-          window.MAP_LIVE.setGraphLink(loc.locationId, loc.name || loc.locationId);
-        }
-    
-        // prefer using graph-fetch.js GViz loader if available and sheetId exists
-        let rows = null;
-        const gfetch = window.CLIMBOX_GRAPH_FETCH;
-        if (gfetch && loc.sheetId) {
-          try {
-            const sheetName = resolveSheetName(loc);
-            const fetched = await gfetch.fetchSheetViaGviz(loc.sheetId, sheetName);
-            if (Array.isArray(fetched) && fetched.length) {
-              rows = fetched;
-            }
-          } catch (e) {
-            console.warn('GViz fetch failed for', loc.locationId, e);
-          }
-        }
-    
-        // fallback to local /data files if GViz not used or failed
-        if ((!rows || !rows.length)) {
-          const fallback = await loadCachedRowsForLocation(loc.locationId, 14);
-          if (fallback && fallback.length) rows = fallback;
-        }
-    
-        // if we have rows, prepare arrays and set charts
-        if (rows && Array.isArray(rows) && rows.length) {
-          // ensure prepareChartArraysFromRows available; otherwise call a basic mapping
-          if (gfetch && typeof gfetch.prepareChartArraysFromRows === 'function') {
-            const prepared = gfetch.prepareChartArraysFromRows(rows, Math.min(20, (gfetch.cfg && gfetch.cfg.HISTORY_POINTS) ? gfetch.cfg.HISTORY_POINTS : 7));
-            if (prepared) {
-              // prepared.labels, prepared.chart1/2/3 arrays
-              safeSetChart(window.chart1, prepared.labels, prepared.chart1 || []);
-              safeSetChart(window.chart2, prepared.labels, prepared.chart2 || []);
-              safeSetChart(window.chart3, prepared.labels, prepared.chart3 || []);
-            }
-          } else {
-            // minimal fallback: map last 7 timestamps and try to pick common keys
-            const last = rows.slice(-7);
-            const labels = last.map(r => {
-              const ts = r.Timestamp || r.timestamp || r.time || r.cachedAt || '';
-              const dt = new Date(ts);
-              if (!isNaN(dt.getTime())) return `${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
-              return String(ts).slice(0,8);
-            });
-            const pick = (r, keys) => {
-              for (const k of keys) {
-                if (r[k] !== undefined) return NumberOrNull(r[k]);
-                // case-insensitive
-                const found = Object.keys(r).find(x => x.toLowerCase().trim() === k.toLowerCase().trim());
-                if (found) return NumberOrNull(r[found]);
-              }
-              return null;
-            };
-            const NumberOrNull = v => { if (v === null||v===undefined||v==='') return null; const n = Number(String(v).replace(/,/g,'')); return Number.isFinite(n)?n:null; };
-            const c1_wt = last.map(r => pick(r, ['Water Temp (C)','water temp','water_temp','WaterTemp']));
-            const c1_hum = last.map(r => pick(r, ['Humidity','humidity','humid']));
-            const c1_air = last.map(r => pick(r, ['Temp udara','air temp','air_temp','temperature']));
-            safeSetChart(window.chart1, labels, [c1_wt, c1_hum, c1_air]);
-            // small placeholders for chart2/3
-            safeSetChart(window.chart2, labels, [last.map(()=>null), last.map(()=>null)]);
-            safeSetChart(window.chart3, labels, [last.map(()=>null), last.map(()=>null), last.map(()=>null)]);
-          }
-    
-          // also update cards area (if graph-fetch exposes processRowsAndRenderCards)
-          if (gfetch && typeof gfetch.processRowsAndRenderCards === 'function') {
-            try { gfetch.processRowsAndRenderCards(rows); } catch(e){ console.warn('cards render error', e); }
-          }
-        } else {
-          console.warn('No rows found for location', loc.locationId);
-        }
-    
-      } catch (e) {
-        console.error('onLocationClick error', e);
+      // if there is at least one location, load its initial chart
+      if (LOCATIONS.length) {
+        onLocationSelected(LOCATIONS[0]).catch(e => console.warn(e));
+        setLocationTitle('location-name-display', LOCATIONS[0].name || LOCATIONS[0].locationId);
       }
     }
     
-    // initialize
-    loadLocations();
+    // called when a location is clicked (marker or list)
+    async function onLocationSelected(loc){
+      try {
+        if (!loc) return;
+        setLocationTitle('location-name-display', loc.name || loc.locationId || '—');
+    
+        if (!loc.sheetId) {
+          console.warn('No sheetId for location', loc);
+          // clear chart
+          updateChart1FromPrepared({ labels: [], water: [], hum: [], air: [] });
+          return;
+        }
+    
+        const sheetName = getSheetNameFromMapping(loc);
+        console.log('Fetching GViz for', loc.locationId, sheetName);
+    
+        let rows = [];
+        try {
+          rows = await fetchSheetViaGviz(loc.sheetId, sheetName, CONFIG.GVIZ_RANGE);
+        } catch (e) {
+          console.warn('GViz fetch failed, trying fallback /data cache if available', e);
+          // try local cached file (if backend wrote /public/data/<locationId>/<sheetName>.json)
+          try {
+            const r = await fetch(`/data/${encodeURIComponent(loc.locationId)}/${encodeURIComponent(sheetName)}.json`, { cache: 'no-store' });
+            if (r.ok) rows = await r.json();
+          } catch(e2){
+            console.warn('fallback fetch failed', e2);
+          }
+        }
+    
+        if (!rows || !Array.isArray(rows) || rows.length === 0) {
+          console.warn('No rows returned for', loc.locationId, sheetName);
+          updateChart1FromPrepared({ labels: [], water: [], hum: [], air: [] });
+          return;
+        }
+    
+        const prepared = prepareChart1FromRows(rows, CONFIG.HISTORY_POINTS);
+        updateChart1FromPrepared(prepared);
+        console.log('chart1 updated for', loc.locationId, 'points:', prepared.labels.length);
+      } catch (err) {
+        console.error('onLocationSelected error', err);
+      }
+    }
+    
+    // ------------------ start ------------------
+    loadLocationsAndRender();
+    
     </script>
-    
-    <!-- keep graph-fetch.js included (must be loaded so CLIMBOX_GRAPH_FETCH is available) -->
     <script src="../assets/js/graph-fetch.js"></script>
-    
 
-
-  </div>
+    </div>
   </main>
   <footer class="footer py-4  ">
     <div class="container-fluid">

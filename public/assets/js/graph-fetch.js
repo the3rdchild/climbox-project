@@ -150,37 +150,104 @@
   }
 
   // ---------- charts: prepare arrays ----------
-  function prepareChartArraysFromRows(rows, maxPoints = 7) {
-    if (!Array.isArray(rows) || rows.length === 0) return null;
-    const slice = rows.slice(-Math.max(1, maxPoints));
-    const labels = slice.map(r => {
-      const ts = pickField(r, cfg.KEYS.timestamp);
-      if (!ts) return new Date().toISOString();
-      try {
-        const dt = new Date(ts);
-        if (!isNaN(dt.getTime())) return dt.toISOString();
-      } catch(e){}
-      return String(ts);
-    });
+// ---- add helper: parse GViz Date(...) or ISO or common MM/DD/YYYY HH:MM:SS
+function pad(n) { return String(n).padStart(2, '0'); }
 
-    const c1_wt = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.water_temp)));
-    const c1_hum = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.humidity)));
-    const c1_air = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.air_temp)));
+function parseMaybeGvizDate(v) {
+  if (v === null || v === undefined) return null;
 
-    const c2_tss = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.tss)));
-    const c2_ph = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.ph)));
-
-    const c3_do = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.do_)));
-    const c3_ec = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.ec)));
-    const c3_tds = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.tds)));
-
-    return {
-      labels,
-      chart1: [c1_wt, c1_hum, c1_air],
-      chart2: [c2_tss, c2_ph],
-      chart3: [c3_do, c3_ec, c3_tds]
-    };
+  // If GViz produced a Date(...) string (common)
+  if (typeof v === 'string' && v.trim().startsWith('Date(')) {
+    const m = /Date\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*(\d+))?\s*\)/.exec(v);
+    if (m) {
+      // Note: month in GViz Date(...) is zero-based already
+      return new Date(
+        Number(m[1]), Number(m[2]), Number(m[3]),
+        Number(m[4]), Number(m[5]), Number(m[6] || 0)
+      );
+    }
   }
+
+  // If it's already a Date object
+  if (v instanceof Date) {
+    if (!isNaN(v.getTime())) return v;
+  }
+
+  // If numeric timestamp
+  if (typeof v === 'number' && Number.isFinite(v)) {
+    const d = new Date(v);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  // Try ISO / common string parse
+  try {
+    const d = new Date(String(v));
+    if (!isNaN(d.getTime())) return d;
+  } catch(e){}
+
+  // Try MM/DD/YYYY HH:MM:SS style (e.g. "8/14/2025 23:59:05")
+  try {
+    const s = String(v).trim();
+    const parts = s.split(' ');
+    if (parts.length >= 1 && parts[0].includes('/')) {
+      const dparts = parts[0].split('/');
+      if (dparts.length === 3) {
+        const month = parseInt(dparts[0], 10);
+        const day = parseInt(dparts[1], 10);
+        const year = parseInt(dparts[2], 10);
+        const timePart = parts[1] || '00:00:00';
+        const t = timePart.split(':').map(x => parseInt(x, 10) || 0);
+        const dt = new Date(year, month - 1, day, t[0] || 0, t[1] || 0, t[2] || 0);
+        if (!isNaN(dt.getTime())) return dt;
+      }
+    }
+  } catch(e){}
+
+  return null;
+}
+
+// ---- replace prepareChartArraysFromRows with this (returns labels already as "HH:MM:SS")
+function prepareChartArraysFromRows(rows, maxPoints = 7) {
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  const slice = rows.slice(-Math.max(1, maxPoints));
+
+  // labels -> formatted time HH:MM:SS
+  const labels = slice.map(r => {
+    const rawTs = pickField(r, cfg.KEYS.timestamp);
+    const dt = parseMaybeGvizDate(rawTs);
+    if (dt) {
+      return `${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+    }
+    // fallback: try string and trim
+    if (rawTs !== null && rawTs !== undefined) {
+      try {
+        const dt2 = new Date(String(rawTs));
+        if (!isNaN(dt2.getTime())) return `${pad(dt2.getHours())}:${pad(dt2.getMinutes())}:${pad(dt2.getSeconds())}`;
+      } catch(e){}
+      return String(rawTs).slice(0, 8); // best-effort
+    }
+    return '';
+  });
+
+  const c1_wt = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.water_temp)));
+  const c1_hum = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.humidity)));
+  const c1_air = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.air_temp)));
+
+  const c2_tss = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.tss)));
+  const c2_ph = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.ph)));
+
+  const c3_do = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.do_)));
+  const c3_ec = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.ec)));
+  const c3_tds = slice.map(r => asNumberOrNull(pickField(r, cfg.KEYS.tds)));
+
+  return {
+    labels,
+    chart1: [c1_wt, c1_hum, c1_air],
+    chart2: [c2_tss, c2_ph],
+    chart3: [c3_do, c3_ec, c3_tds]
+  };
+}
+
 
   // safe chart setter
   function safeSetChart(chart, labels, datasetArrays) {
