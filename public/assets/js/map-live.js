@@ -315,7 +315,7 @@ function ensureGraphLinkEl() {
         // use the middle anchor, assign id and style, return it
         const m = anchors[1];
         m.id = 'graph-link';
-        m.style.color = '#0b3d91';
+        m.style.color = '#0224e6';
         m.style.textDecoration = 'none';
         // ensure it has a safe href fallback
         if (!m.getAttribute('href')) m.href = '/pages/graph.html';
@@ -328,7 +328,7 @@ function ensureGraphLinkEl() {
   const found = Array.from(document.querySelectorAll('a')).find(a => (a.textContent || '').toLowerCase().includes('pilih lokasi sensor'));
   if (found) {
     found.id = 'graph-link';
-    found.style.color = '#0b3d91';
+    found.style.color = '#0224e6';
     found.style.textDecoration = 'none';
     if (!found.getAttribute('href')) found.href = '/pages/graph.html';
     return found;
@@ -338,7 +338,7 @@ function ensureGraphLinkEl() {
   const existingWrapper = document.getElementById('graph-link-wrapper');
   if (existingWrapper) {
     const candidate = existingWrapper.querySelector('a') || existingWrapper.querySelector('#graph-link');
-    if (candidate) { candidate.id = 'graph-link'; candidate.style.color = '#0b3d91'; return candidate; }
+    if (candidate) { candidate.id = 'graph-link'; candidate.style.color = '#0224e6'; return candidate; }
   }
 
   // 5) Otherwise create the wrapper and anchors (same structure as your static markup)
@@ -364,7 +364,7 @@ function ensureGraphLinkEl() {
   middle.id = 'graph-link';
   middle.href = '/pages/graph.html';
   middle.textContent = '[Pilih Lokasi Sensor]';
-  middle.style.color = '#0b3d91';
+  middle.style.color = '#0224e6';
   middle.style.textDecoration = 'none';
 
   // Right anchor: "Lebih Lanjut..."
@@ -400,7 +400,7 @@ function setGraphLink(locationId, displayName) {
 
   a.href = `/pages/graph.html?location=${encodeURIComponent(locationId)}`;
   a.textContent = `[${safeName}]`;
-  a.style.color = '#0b3d91'; // keep dark blue
+  a.style.color = '#0224e6'; // keep dark blue
   a.style.textDecoration = 'none';
 }
 
@@ -414,7 +414,7 @@ function setGraphLink(locationId, displayName) {
 
   a.href = `/pages/graph.html?location=${encodeURIComponent(locationId)}`;
   a.textContent = `[${safeName}]`;
-  a.style.color = '#0b3d91'; // ensure dark blue
+  a.style.color = '#0224e6'; // ensure dark blue
 }
 
 // openGraph keeps previous behaviour (set link then navigate)
