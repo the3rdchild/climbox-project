@@ -496,47 +496,42 @@
       
     </div>
   </div>
-<!--
-Graph konten
--->
-<footer class="footer py-4  ">
-  <div class="container-fluid">
-    <div class="row align-items-center justify-content-lg-between">
-      <div class="col-lg-6 mb-lg-0 mb-4">
-        <div class="copyright text-center text-sm text-muted text-lg-start">
-          © <script>
-            document.write(new Date().getFullYear())
-          </script>,
-          made with <i class="fa fa-heart"></i> by
-          <a href=" " class="font-weight-bold" target="_blank">ClimBox</a>
-          for a better climate.
+  <!--  Graph konten  -->
+
+  <footer class="footer py-4  ">
+    <div class="container-fluid">
+      <div class="row align-items-center justify-content-lg-between">
+        <div class="col-lg-6 mb-lg-0 mb-4">
+          <div class="copyright text-center text-sm text-muted text-lg-start">
+            © <script>
+              document.write(new Date().getFullYear())
+            </script>,
+            made with <i class="fa fa-heart"></i> by
+            <a href=" " class="font-weight-bold" target="_blank">ClimBox</a>
+            for a better climate.
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <ul class="nav nav-footer justify-content-center justify-content-lg-end">
+            <li class="nav-item">
+              <a href=" " class="nav-link text-muted" target="_blank">Creative Tim</a>
+            </li>
+            <li class="nav-item">
+              <a href=" " class="nav-link text-muted" target="_blank">About Us</a>
+            </li>
+            <li class="nav-item">
+              <a href=" " class="nav-link text-muted" target="_blank">Blog</a>
+            </li>
+            <li class="nav-item">
+              <a href=" " class="nav-link pe-0 text-muted" target="_blank">License</a>
+            </li>
+          </ul>
         </div>
       </div>
-      <div class="col-lg-6">
-        <ul class="nav nav-footer justify-content-center justify-content-lg-end">
-          <li class="nav-item">
-            <a href=" " class="nav-link text-muted" target="_blank">Creative Tim</a>
-          </li>
-          <li class="nav-item">
-            <a href=" " class="nav-link text-muted" target="_blank">About Us</a>
-          </li>
-          <li class="nav-item">
-            <a href=" " class="nav-link text-muted" target="_blank">Blog</a>
-          </li>
-          <li class="nav-item">
-            <a href=" " class="nav-link pe-0 text-muted" target="_blank">License</a>
-          </li>
-        </ul>
-      </div>
     </div>
-  </div>
-  
-</footer>
-<script src="../assets/js/map-live.js"></script>
-
-<!-- then include your script -->
-
-  <!--   Core JS Files   -->
+    
+  </footer>
+  <script src="../assets/js/map-live.js"></script>
   <script src="../assets/js/core/popper.min.js"></script>
   <script src="../assets/js/core/bootstrap.min.js"></script>
   <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
@@ -552,319 +547,299 @@ Graph konten
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Map script module   -->
-       <!-- Leaflet & Chart.js -->
-       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-       <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <script type="module">
-   
-    const ctx1 = document.getElementById('chart1').getContext('2d');
-    const ctx2 = document.getElementById('chart2').getContext('2d');
-    const ctx3 = document.getElementById('chart3').getContext('2d');
+  const ctx1 = document.getElementById('chart1').getContext('2d');
+  const ctx2 = document.getElementById('chart2').getContext('2d');
+  const ctx3 = document.getElementById('chart3').getContext('2d');
 
-    const chart1 = new Chart(ctx1, {
+  const chart1 = new Chart(ctx1, {
     type: 'line',
     data: {
-        labels: [], // Label untuk grafik 1
-        datasets: [
-            {
-                label: 'Water Temp (°C)',
-                data: [], // Data untuk Water Temp
-                borderColor: 'blue',
-                fill: false,
-            },
-            {
-                label: 'Humidity (%)',
-                data: [], // Data untuk Humidity
-                borderColor: 'green',
-                fill: false,
-            },
-            {
-                label: 'Air Temp (°C)',
-                data: [], // Data untuk Air Temp
-                borderColor: 'orange',
-                fill: false,
-            }
-        ]
+      labels: [],
+      datasets: [
+        {
+          label: 'Water Temp (°C)',
+          data: [],
+          borderColor: 'blue',
+          fill: false,
+        },
+        {
+          label: 'Humidity (%)',
+          data: [],
+          borderColor: 'green',
+          fill: false,
+        },
+        {
+          label: 'Air Temp (°C)',
+          data: [],
+          borderColor: 'orange',
+          fill: false,
+        }
+      ]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                title: {
-                    display: true,
-                    text: 'Temperature / Humidity'
-                }
-            },
-            x: {
-                title: {
-                    display: true,
-                    text: 'Time'
-                }
-            }
-        }
-    }
-});
-window.chart1 = chart1;
-
-const chart2 = new Chart(ctx2, {
-    type: 'line',
-    data: {
-        labels: [], // Label untuk grafik 2
-        datasets: [
-            {
-                label: 'TSS (V)',
-                data: [], // Data untuk TSS
-                borderColor: 'purple',
-                fill: false,
-            },
-            {
-                label: 'pH',
-                data: [], // Data untuk pH
-                borderColor: 'red',
-                fill: false,
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                title: {
-                    display: true,
-                    text: 'TSS / pH'
-                }
-            },
-            x: {
-                title: {
-                    display: true,
-                    text: 'Time',
-                    
-                }
-            }
-        }
-    }
-});
-window.chart2 = chart2;
-
-const chart3 = new Chart(ctx3, {
-    type: 'line',
-    data: {
-        labels: [], // Label untuk grafik 3
-        datasets: [
-            {
-                label: 'DO (µg/L)',
-                data: [], // Data untuk DO
-                borderColor: 'cyan',
-                fill: false,
-            },
-            {
-                label: 'EC (mS/cm)',
-                data: [], // Data untuk EC
-                borderColor: 'magenta',
-                fill: false,
-            },
-            {
-                label: 'TDS (ppm)',
-                data: [], // Data untuk TDS
-                borderColor: 'yellow',
-                fill: false,
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                title: {
-                    display: true,
-                    text: 'DO / EC / TDS'
-                }
-            },
-            x: {
-                title: {
-                    display: true,
-                    text: 'Time'
-                }
-            }
-        }
-    }
-});
-window.chart3 = chart3;
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const locationId = urlParams.get('location');
-  if (!locationId) {
-      // Jika tidak ada locationId, arahkan ke map.html
-      window.location.href = '/pages/map.html';
-  }
-
-  function parseTs(ts) {
-  if (!ts) return null;
-  // common formats: "8/14/2025 23:59:05" or ISO
-  const isoTry = new Date(ts);
-  if (!isNaN(isoTry.getTime())) return isoTry;
-  // try slashes MM/DD/YYYY HH:MM:SS
-  try {
-    const parts = ts.split(' ');
-    const dParts = parts[0].split('/');
-    if (dParts.length === 3) {
-      const month = parseInt(dParts[0],10);
-      const day = parseInt(dParts[1],10);
-      const year = parseInt(dParts[2],10);
-      const t = parts[1] || '00:00:00';
-      const dt = new Date(year, month-1, day, ...t.split(':').map(n=>parseInt(n,10)));
-      if (!isNaN(dt.getTime())) return dt;
-    }
-  } catch(e){}
-  return new Date(ts); // best effort
-}
-
-// load cached rows for locationId: try latest.json -> sheetName.json, fallback to sensorData_YYYY-MM-DD for last N days
-async function loadCachedRowsForLocation(locationId, opts = {}) {
-  const MAX_DAYS = opts.days || 7;
-  try {
-    // Try latest meta
-    const latestRes = await fetch(`/data/${encodeURIComponent(locationId)}/latest.json`, { cache: 'no-store' });
-    if (latestRes.ok) {
-      const latest = await latestRes.json();
-      // try sheet file first
-      if (latest && latest.sheetName) {
-        const sheetFile = `/data/${encodeURIComponent(locationId)}/${encodeURIComponent(latest.sheetName)}.json`;
-        const r = await fetch(sheetFile, { cache: 'no-store' });
-        if (r.ok) {
-          const rows = await r.json();
-          // normalize rows to array-of-objects and sort by Timestamp
-          return normalizeAndSortRows(rows);
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          title: {
+              display: true,
+              text: 'Temperature / Humidity'
+          }
+        },
+        x: {
+          title: {
+              display: true,
+              text: 'Time'
+          }
         }
       }
     }
-  } catch (e) {
-    console.warn('loadCachedRowsForLocation: latest.json failed', e);
+  });
+  window.chart1 = chart1;
+
+  const chart2 = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'TSS (V)',
+          data: [],
+          borderColor: 'purple',
+          fill: false,
+        },
+        {
+          label: 'pH',
+          data: [],
+          borderColor: 'red',
+          fill: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+            title: {
+              display: true,
+              text: 'TSS / pH'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Time',
+          }
+        }
+      }
+    }
+  });
+  window.chart2 = chart2;
+
+  const chart3 = new Chart(ctx3, {
+    type: 'line',
+    data: {
+          labels: [],
+          datasets: [
+        {
+          label: 'DO (µg/L)',
+          data: [],
+          borderColor: 'cyan',
+          fill: false,
+        },
+        {
+          label: 'EC (mS/cm)',
+          data: [],
+          borderColor: 'magenta',
+          fill: false,
+        },
+        {
+          label: 'TDS (ppm)',
+          data: [],
+          borderColor: 'yellow',
+          fill: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+            title: {
+              display: true,
+              text: 'DO / EC / TDS'
+            }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Time'
+          }
+        }
+      }
+    }
+  });
+  window.chart3 = chart3;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const locationId = urlParams.get('location');
+    if (!locationId) {
+      window.location.href = '/pages/map.html';
+    }
+
+  function parseTs(ts) {
+    if (!ts) return null;
+  const isoTry = new Date(ts);
+    if (!isNaN(isoTry.getTime())) return isoTry;
+    try {
+      const parts = ts.split(' ');
+      const dParts = parts[0].split('/');
+      if (dParts.length === 3) {
+        const month = parseInt(dParts[0],10);
+        const day = parseInt(dParts[1],10);
+        const year = parseInt(dParts[2],10);
+        const t = parts[1] || '00:00:00';
+        const dt = new Date(year, month-1, day, ...t.split(':').map(n=>parseInt(n,10)));
+        if (!isNaN(dt.getTime())) return dt;
+      }
+    } catch(e){}
+    return new Date(ts);
   }
 
-  // fallback: try per-day sensorData files for last MAX_DAYS days
-  const rowsAccum = [];
-  for (let i = 0; i < MAX_DAYS; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().slice(0,10);
-    const candidate = `/data/${encodeURIComponent(locationId)}/sensorData_${dateStr}.json`;
+  async function loadCachedRowsForLocation(locationId, opts = {}) {
+    const MAX_DAYS = opts.days || 7;
     try {
-      const resp = await fetch(candidate, { cache: 'no-store' });
-      if (!resp.ok) continue;
-      const partial = await resp.json();
-      if (Array.isArray(partial)) rowsAccum.push(...partial);
+      const latestRes = await fetch(`/data/${encodeURIComponent(locationId)}/latest.json`, { cache: 'no-store' });
+      if (latestRes.ok) {
+        const latest = await latestRes.json();
+        if (latest && latest.sheetName) {
+          const sheetFile = `/data/${encodeURIComponent(locationId)}/${encodeURIComponent(latest.sheetName)}.json`;
+          const r = await fetch(sheetFile, { cache: 'no-store' });
+          if (r.ok) {
+            const rows = await r.json();
+            return normalizeAndSortRows(rows);
+          }
+        }
+      }
     } catch (e) {
-      // ignore not found or parse error
+      console.warn('loadCachedRowsForLocation: latest.json failed', e);
+    }
+
+  const rowsAccum = [];
+    for (let i = 0; i < MAX_DAYS; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().slice(0,10);
+      const candidate = `/data/${encodeURIComponent(locationId)}/sensorData_${dateStr}.json`;
+      try {
+        const resp = await fetch(candidate, { cache: 'no-store' });
+        if (!resp.ok) continue;
+        const partial = await resp.json();
+        if (Array.isArray(partial)) rowsAccum.push(...partial);
+      } catch (e) {
+      }
+    }
+    return normalizeAndSortRows(rowsAccum);
+  }
+
+  function normalizeAndSortRows(rows) {
+    if (!rows || !Array.isArray(rows)) return [];
+    const normalized = rows.map(r => {
+      const ts = r.Timestamp || r.timestamp || r.time || r.cachedAt || null;
+      return Object.assign({}, r, { __tsDate: parseTs(ts) });
+    }).filter(r=> r.__tsDate && !isNaN(r.__tsDate.getTime()));
+
+    normalized.sort((a,b)=> a.__tsDate - b.__tsDate);
+    return normalized;
+  }
+
+  function fillChartsFromRows(rows) {
+    if (!Array.isArray(rows) || rows.length === 0) return;
+    const last = rows.slice(-7);
+    // map to labels and series arrays
+    const labels = last.map(r => (r.Timestamp || r.timestamp || r.time || r.cachedAt));
+    // helper to safe-get normalized key
+    const nk = k => String(k||'').trim().toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+    // build arrays
+    const waterTemp = last.map(r => {
+      const v = r['Water Temp (C)'] ?? r['water_temp'] ?? r['water temp'] ?? r['WaterTemp'] ?? null;
+      return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
+    });
+    const airTemp = last.map(r => {
+      const v = r['Temp udara'] ?? r['Temp udara'] ?? r['temp udara'] ?? r['Air Temp'] ?? r['air_temp'] ?? null;
+      return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
+    });
+    const humidity = last.map(_=> null); // if no humidity sensor, placeholder
+
+    // chart1 datasets: [waterTemp, humidity, airTemp]
+    if (window.chart1) {
+      window.chart1.data.labels = labels;
+      if (window.chart1.data.datasets[0]) window.chart1.data.datasets[0].data = waterTemp;
+      if (window.chart1.data.datasets[1]) window.chart1.data.datasets[1].data = humidity;
+      if (window.chart1.data.datasets[2]) window.chart1.data.datasets[2].data = airTemp;
+      window.chart1.update();
+    }
+
+    // chart2: TSS & pH
+    const tss = last.map(r => {
+      const v = r['TSS (V)'] ?? r['tss'] ?? null;
+      return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
+    });
+    const ph = last.map(r => {
+      const v = r['pH'] ?? r['ph'] ?? null;
+      return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
+    });
+    if (window.chart2) {
+      window.chart2.data.labels = labels;
+      if (window.chart2.data.datasets[0]) window.chart2.data.datasets[0].data = tss;
+      if (window.chart2.data.datasets[1]) window.chart2.data.datasets[1].data = ph;
+      window.chart2.update();
+    }
+
+    // chart3: DO, EC, TDS
+    const doArr = last.map(r => NumberOrNull(r['DO (ug/L)'] ?? r['do']));
+    const ecArr = last.map(r => NumberOrNull(r['EC (ms/cm)'] ?? r['ec']));
+    const tdsArr = last.map(r => NumberOrNull(r['TDS (ppm)'] ?? r['tds']));
+    if (window.chart3) {
+      window.chart3.data.labels = labels;
+      if (window.chart3.data.datasets[0]) window.chart3.data.datasets[0].data = doArr;
+      if (window.chart3.data.datasets[1]) window.chart3.data.datasets[1].data = ecArr;
+      if (window.chart3.data.datasets[2]) window.chart3.data.datasets[2].data = tdsArr;
+      window.chart3.update();
     }
   }
-  return normalizeAndSortRows(rowsAccum);
-}
 
-function normalizeAndSortRows(rows) {
-  if (!rows || !Array.isArray(rows)) return [];
-  // ensure each row has Timestamp field; try various keys
-  const normalized = rows.map(r => {
-    const ts = r.Timestamp || r.timestamp || r.time || r.cachedAt || null;
-    return Object.assign({}, r, { __tsDate: parseTs(ts) });
-  }).filter(r=> r.__tsDate && !isNaN(r.__tsDate.getTime()));
-
-  normalized.sort((a,b)=> a.__tsDate - b.__tsDate);
-  return normalized;
-}
-
-/**
- * Fill chart1/chart2/chart3 with up to last 7 points from cachedRows.
- * - rows must be sorted ascending by timestamp (oldest -> newest)
- */
-function fillChartsFromRows(rows) {
-  if (!Array.isArray(rows) || rows.length === 0) return;
-  // take last 7
-  const last = rows.slice(-7);
-  // map to labels and series arrays
-  const labels = last.map(r => (r.Timestamp || r.timestamp || r.time || r.cachedAt));
-  // helper to safe-get normalized key
-  const nk = k => String(k||'').trim().toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
-  // build arrays
-  const waterTemp = last.map(r => {
-    const v = r['Water Temp (C)'] ?? r['water_temp'] ?? r['water temp'] ?? r['WaterTemp'] ?? null;
-    return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
-  });
-  const airTemp = last.map(r => {
-    const v = r['Temp udara'] ?? r['Temp udara'] ?? r['temp udara'] ?? r['Air Temp'] ?? r['air_temp'] ?? null;
-    return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
-  });
-  const humidity = last.map(_=> null); // if no humidity sensor, placeholder
-
-  // chart1 datasets: [waterTemp, humidity, airTemp]
-  if (window.chart1) {
-    window.chart1.data.labels = labels;
-    if (window.chart1.data.datasets[0]) window.chart1.data.datasets[0].data = waterTemp;
-    if (window.chart1.data.datasets[1]) window.chart1.data.datasets[1].data = humidity;
-    if (window.chart1.data.datasets[2]) window.chart1.data.datasets[2].data = airTemp;
-    window.chart1.update();
+  function NumberOrNull(x) {
+    if (x === null || x === undefined || x === '') return null;
+    const n = Number(String(x).replace(/,/g,''));
+    return Number.isNaN(n) ? null : n;
   }
 
-  // chart2: TSS & pH
-  const tss = last.map(r => {
-    const v = r['TSS (V)'] ?? r['tss'] ?? null;
-    return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
-  });
-  const ph = last.map(r => {
-    const v = r['pH'] ?? r['ph'] ?? null;
-    return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
-  });
-  if (window.chart2) {
-    window.chart2.data.labels = labels;
-    if (window.chart2.data.datasets[0]) window.chart2.data.datasets[0].data = tss;
-    if (window.chart2.data.datasets[1]) window.chart2.data.datasets[1].data = ph;
-    window.chart2.update();
-  }
-
-  // chart3: DO, EC, TDS
-  const doArr = last.map(r => NumberOrNull(r['DO (ug/L)'] ?? r['do']));
-  const ecArr = last.map(r => NumberOrNull(r['EC (ms/cm)'] ?? r['ec']));
-  const tdsArr = last.map(r => NumberOrNull(r['TDS (ppm)'] ?? r['tds']));
-  if (window.chart3) {
-    window.chart3.data.labels = labels;
-    if (window.chart3.data.datasets[0]) window.chart3.data.datasets[0].data = doArr;
-    if (window.chart3.data.datasets[1]) window.chart3.data.datasets[1].data = ecArr;
-    if (window.chart3.data.datasets[2]) window.chart3.data.datasets[2].data = tdsArr;
-    window.chart3.update();
-  }
-}
-
-function NumberOrNull(x) {
-  if (x === null || x === undefined || x === '') return null;
-  const n = Number(String(x).replace(/,/g,''));
-  return Number.isNaN(n) ? null : n;
-}
-
-// Usage: after charts created
-(async () => {
-  const params = new URLSearchParams(window.location.search);
-  const locationId = params.get('location') || window.CLIMBOX_CONFIG && window.CLIMBOX_CONFIG.LOCATION_ID;
-  if (!locationId) return;
-  const rows = await loadCachedRowsForLocation(locationId, { days: 14 }); // lookback 14 days then take last 7 points
-  fillChartsFromRows(rows);
-})();   
+  // Usage: after charts created
+  (async () => {
+    const params = new URLSearchParams(window.location.search);
+    const locationId = params.get('location') || window.CLIMBOX_CONFIG && window.CLIMBOX_CONFIG.LOCATION_ID;
+    if (!locationId) return;
+    const rows = await loadCachedRowsForLocation(locationId, { days: 14 }); // lookback 14 days then take last 7 points
+    fillChartsFromRows(rows);
+  })();   
     
-    window.CLIMBOX_CONFIG = {
-        LOCATION_ID: locationId || 'pulau_komodo',
-        POLL_SECONDS: 30,
-        MQTT_WS: 'wss://broker.emqx.io:8084/mqtt',
-        MQTT_USERNAME: '',
-        MQTT_PASSWORD: '',
-        MQTT_TOPIC_BASE: 'climbox',
-        MQTT_AUTO_DISABLE_POLL: true
-    };
+  window.CLIMBOX_CONFIG = {
+      LOCATION_ID: locationId || 'pulau_komodo',
+      POLL_SECONDS: 30,
+      MQTT_WS: 'wss://broker.emqx.io:8084/mqtt',
+      MQTT_USERNAME: '',
+      MQTT_PASSWORD: '',
+      MQTT_TOPIC_BASE: 'climbox',
+      MQTT_AUTO_DISABLE_POLL: true
+  };
     
       // Data lokasi simulasi
       const locations = [
@@ -879,20 +854,20 @@ function NumberOrNull(x) {
     console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
 
         // Fungsi untuk memuat data lokasi dari JSON
-        async function loadLocations() {
-        try {
-            const response = await fetch('../assets/data/locations.json');
-            const data = await response.json();
-            const foundLocation = data.find(location => location.locationId === locationId);
-            if (foundLocation) {
-                document.getElementById('location-name-display').textContent = foundLocation.name;
-                initMap(foundLocation.coord);
-            } else {
-                console.warn('Location not found:', locationId);
-            }
-        } catch (error) {
-            console.error('Error loading locations:', error);
-        }
+    async function loadLocations() {
+      try {
+          const response = await fetch('../assets/data/locations.json');
+          const data = await response.json();
+          const foundLocation = data.find(location => location.locationId === locationId);
+          if (foundLocation) {
+              document.getElementById('location-name-display').textContent = foundLocation.name;
+              initMap(foundLocation.coord);
+          } else {
+              console.warn('Location not found:', locationId);
+          }
+      } catch (error) {
+          console.error('Error loading locations:', error);
+      }
     }
         // Fungsi untuk menginisialisasi peta
     function initMap(coord) {
@@ -904,17 +879,16 @@ function NumberOrNull(x) {
         mk.bindPopup(`<strong>${locations[0].name}</strong><br><small>${locations[0].country}</small>`);
     }
     function renderLocationList(locations) {
-        const el = document.getElementById('location-list'); // atau sesuai ID aslinya
-        if (!el) return; // kalau nggak ada, langsung keluar
-        el.innerHTML = ''; // sekarang aman
-        locations.forEach(loc => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
-            li.textContent = loc.name; // Tampilkan nama lokasi
-            el.appendChild(li);
-        });
+      const el = document.getElementById('location-list'); // atau sesuai ID aslinya
+      if (!el) return; // kalau nggak ada, langsung keluar
+      el.innerHTML = ''; // sekarang aman
+      locations.forEach(loc => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
+          li.textContent = loc.name; // Tampilkan nama lokasi
+          el.appendChild(li);
+      });
     }
-    
     loadLocations();
   </script>
   <script src="../assets/js/graph-fetch.js"></script>
