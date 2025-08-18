@@ -78,8 +78,8 @@
   width: 25px;
   height: 25px;
   line-height: 18px;
-  font-size: 22px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.367);
+  font-size: 25px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.573);
 }
 
 /* Optional: make the X button look more subtle */
@@ -591,32 +591,37 @@
 
   // handler to show popup (rows optional: if provided, used; else fetched)
   async function handleMarkerClickShowPopup(map, marker, loc, rowsParam){
-    const rows = Array.isArray(rowsParam) && rowsParam.length ? rowsParam : await getLatestRowsForLocation(loc);
-    const latest = safeGetLatest(rows) || {};
-    const { html, arrowId, waterTempValue } = renderPopupCardHTMLStringFromLocAndRow(loc, latest);
-    const popup = openLocationPopup(map, marker.getLatLng(), html);
+  // 👇 force close any currently open popup
+  map.closePopup();
 
-    // rotate arrow after DOM present
-    setTimeout(()=> {
-      const popupEl = document.querySelector('.leaflet-popup .leaflet-popup-content');
-      if (!popupEl) return;
-      const arrowEl = popupEl.querySelector(`#${arrowId}`);
-      if (arrowEl) {
-        // reuse mapping of 20..38 -> angle
-        const min = 20, max = 38;
-        const tVal = asNumberOrNullLocal(waterTempValue);
-        if (tVal === null) arrowEl.setAttribute("transform", `rotate(0 21 21)`);
-        else {
-          const clamped = Math.max(min, Math.min(max, tVal));
-          const t = (clamped - min) / (max - min);
-          const startAngle = -90, endAngle = 180;
-          let angle = startAngle + t * (endAngle - startAngle);
-          angle = ((angle + 180) % 360) - 180;
-          arrowEl.setAttribute("transform", `rotate(${angle} 21 21)`);
-        }
+  const rows = Array.isArray(rowsParam) && rowsParam.length ? rowsParam : await getLatestRowsForLocation(loc);
+  const latest = safeGetLatest(rows) || {};
+  const { html, arrowId, waterTempValue } = renderPopupCardHTMLStringFromLocAndRow(loc, latest);
+  
+  const popup = openLocationPopup(map, marker.getLatLng(), html);
+
+  // rotate arrow after DOM present
+  setTimeout(()=> {
+    const popupEl = popup.getElement();
+    if (!popupEl) return;
+    const arrowEl = popupEl.querySelector(`#${arrowId}`);
+    if (arrowEl) {
+      const min = 20, max = 38;
+      const tVal = asNumberOrNullLocal(waterTempValue);
+      if (tVal === null) {
+        arrowEl.setAttribute("transform", `rotate(0 21 21)`);
+      } else {
+        const clamped = Math.max(min, Math.min(max, tVal));
+        const t = (clamped - min) / (max - min);
+        const startAngle = -90, endAngle = 180;
+        let angle = startAngle + t * (endAngle - startAngle);
+        angle = ((angle + 180) % 360) - 180;
+        arrowEl.setAttribute("transform", `rotate(${angle} 21 21)`);
       }
-    }, 50);
-  }
+    }
+  }, 50);
+}
+
 
   /* ----------------- map + click handlers ----------------- */
   const locations = []; // filled by loadLocations()
