@@ -350,17 +350,48 @@ function fmtNumber(v, unit) {
     // Card-specific placements based on data-group attribute
     const group = (groupName || '').toLowerCase();
   
-    // METEOROLOGI card
+    // METEOROLOGI card (timestamp placed BEFORE .ms-auto)
     if (group === 'meteorologi') {
       const bigN = cardEl.querySelector('.big-n');
       // big metric -> Air Temp (°C) if available, else Wind Speed
       const air = values[ normalizeKey('Air Temp (C)') ] ?? values[ normalizeKey('Temp udara') ];
       const windSpeed = values[ normalizeKey('Wind Speed (km/h)') ];
       setSafeText(bigN, fmtNumber(asNumberOrNull(air) ?? asNumberOrNull(windSpeed), '°C'));
+
       // small fields
       setSafeText(cardEl.querySelector('.field-surface-temp'), values[ normalizeKey('Wind Direction') ] ?? '-');
       setSafeText(cardEl.querySelector('.field-historical-max'), fmtNumber(asNumberOrNull(windSpeed), ' km/h'));
       setSafeText(cardEl.querySelector('.field-note'), (values[ normalizeKey('Air Humidity (%)') ] ? `RH ${fmtNumber(asNumberOrNull(values[ normalizeKey('Air Humidity (%)') ]), '%')}` : '--'));
+
+      // --- last-updated: create/find element and insert BEFORE .ms-auto ---
+      let lastEl = cardEl.querySelector('.last-updated');
+      // prefer a dedicated small wrapper so styling matches others
+      if (!lastEl) {
+        lastEl = document.createElement('div');
+        lastEl.className = 'muted last-updated';
+        lastEl.style.marginTop = '8px';
+        // insert before ms-auto if exists, otherwise append to card-body
+        const barStrip = cardEl.querySelector('.ms-auto2');
+        if (barStrip && barStrip.parentNode) {
+          barStrip.parentNode.insertBefore(lastEl, barStrip);
+        } else {
+          const body = cardEl.querySelector('.card-body') || cardEl;
+          body.appendChild(lastEl);
+        }
+      }
+
+      // Format timestamp nicely (use parseMaybeGvizDate if available), show in Indonesian locale
+      if (timestamp) {
+        let dt = null;
+        try {
+          if (typeof parseMaybeGvizDate === 'function') dt = parseMaybeGvizDate(timestamp);
+          if (!dt) dt = new Date(timestamp);
+        } catch (e) { dt = new Date(timestamp); }
+        const tsText = (dt && !isNaN(dt.getTime())) ? dt.toLocaleString('id-ID') : String(timestamp);
+        setSafeText(lastEl, `Last data received: ${tsText}`);
+      } else {
+        setSafeText(lastEl, 'Last data received: --');
+      }
     }
   
     // PRESIPITASI card
@@ -376,26 +407,30 @@ function fmtNumber(v, unit) {
     // KUALITAS FISIKA
     else if (group === 'kualitas_fisika') {
       const big = cardEl.querySelector('.big-n');
+      const ecBig = cardEl.querySelector('.field-ec-big');
+      const coordsEl = cardEl.querySelector('.field-coords');
       const last = cardEl.querySelector('.last-updated');
-      const waterTemp = values[ normalizeKey('Water Temp (C)') ];
-      const ec = values[ normalizeKey('EC (ms/cm)') ];
+    
+      // values from normalized map (values keys are normalized)
+      const waterTemp = groupData[ normalizeKey('Water Temp (C)') ] ?? groupData[ normalizeKey('WaterTemp') ];
+      const ec = groupData[ normalizeKey('EC (ms/cm)') ] ?? groupData[ normalizeKey('EC') ];
+      const lat = groupData[ normalizeKey('Latitude') ];
+      const lon = groupData[ normalizeKey('Longitude') ];
+    
+      // big metrics
       setSafeText(big, fmtNumber(asNumberOrNull(waterTemp), '°C'));
-      if (last && timestamp) setSafeText(last, `Last data received: ${timestamp}`);
-      // put coordinates in group-metrics
-      const lat = values[ normalizeKey('Latitude') ];
-      const lon = values[ normalizeKey('Longitude') ];
-      listEl.innerHTML = '';
-      if (lat !== undefined || lon !== undefined) {
-        const row = document.createElement('div');
-        row.className = 'd-flex justify-content-between';
-        row.innerHTML = `<div class="muted small">Coords</div><div class="fw-bold small">${lat ?? '-'}, ${lon ?? '-'}</div>`;
-        listEl.appendChild(row);
+      if (ecBig) setSafeText(ecBig, fmtNumber(asNumberOrNull(ec), ''));
+    
+      // coords (small)
+      if (coordsEl) {
+        const latTxt = (lat === undefined || lat === null || lat === '') ? '-' : String(lat);
+        const lonTxt = (lon === undefined || lon === null || lon === '') ? '-' : String(lon);
+        setSafeText(coordsEl, `Lat: ${latTxt}, Lon: ${lonTxt}`);
       }
-      if (ec !== undefined) {
-        const row = document.createElement('div');
-        row.className = 'd-flex justify-content-between';
-        row.innerHTML = `<div class="muted small">EC</div><div class="fw-bold small">${fmtNumber(asNumberOrNull(ec), ' mS/cm')}</div>`;
-        listEl.appendChild(row);
+    
+      // timestamp - keep at bottom
+      if (last && timestamp) {
+        setSafeText(last, `Last data received: ${timestamp}`);
       }
     }
   
@@ -417,39 +452,39 @@ function fmtNumber(v, unit) {
       });
     }
   
-    // KUALITAS KIMIA LANJUT
+    // KUALITAS KIMIA LANJUT (tweak: do NOT render group-metrics; only primary/secondary + timestamp)
     else if (group === 'kualitas_kimia_lanjut') {
-      const primary = cardEl.querySelector('.field-primary');
-      const secondary = cardEl.querySelector('.field-secondary');
-      const doVal = values[ normalizeKey('DO (ug/L)') ];
-      const pump1 = values[ normalizeKey('Pompa Air Laut') ];
-      const pump2 = values[ normalizeKey('Pompa Bilas') ];
-      setSafeText(primary, fmtNumber(asNumberOrNull(doVal), ' µg/L'));
-      // show pump statuses in secondary
+      const primaryEl = cardEl.querySelector('.field-primary') || cardEl.querySelector('.big-n');
+      const secondaryEl = cardEl.querySelector('.field-secondary');
+      const last = cardEl.querySelector('.last-updated');
+
+      // normalized keys
+      const doVal = groupData[ normalizeKey('DO (ug/L)') ];
+      const pump1 = groupData[ normalizeKey('Pompa Air Laut') ];
+      const pump2 = groupData[ normalizeKey('Pompa Bilas') ];
+
+      // primary: DO (numeric preferred)
+      setSafeText(primaryEl, fmtNumber(asNumberOrNull(doVal), ' mg/L'));
+
+      // secondary: show pumps as single compact string (or fallback '--')
       const pumps = [];
-      if (pump1 !== undefined) pumps.push(`Pompa Laut: ${pump1}`);
-      if (pump2 !== undefined) pumps.push(`Pompa Bilas: ${pump2}`);
-      setSafeText(secondary, pumps.length ? pumps.join(' | ') : '--');
-      // add DO to group metrics as well
-      listEl.innerHTML = '';
-      const row = document.createElement('div');
-      row.className = 'd-flex justify-content-between';
-      row.innerHTML = `<div class="muted small">DO</div><div class="fw-bold small">${fmtNumber(asNumberOrNull(doVal), ' µg/L')}</div>`;
-      listEl.appendChild(row);
-      if (pump1 !== undefined) {
-        const r2 = document.createElement('div');
-        r2.className = 'd-flex justify-content-between';
-        r2.innerHTML = `<div class="muted small">Pompa Laut</div><div class="fw-bold small">${pump1}</div>`;
-        listEl.appendChild(r2);
+      if (pump1 !== undefined && pump1 !== null && String(pump1).trim() !== '') pumps.push(`Pompa Laut: ${pump1}`);
+      if (pump2 !== undefined && pump2 !== null && String(pump2).trim() !== '') pumps.push(`Pompa Bilas: ${pump2}`);
+      setSafeText(secondaryEl, pumps.length ? pumps.join(' ') : '--');
+
+      // hide / clear the group-metrics container for this card so injected rows won't show
+      const listEl = cardEl.querySelector('.group-metrics');
+      if (listEl) {
+        listEl.innerHTML = '';
+        listEl.style.display = 'none'; // keep element in DOM but hidden (safe)
       }
-      if (pump2 !== undefined) {
-        const r3 = document.createElement('div');
-        r3.className = 'd-flex justify-content-between';
-        r3.innerHTML = `<div class="muted small">Pompa Bilas</div><div class="fw-bold small">${pump2}</div>`;
-        listEl.appendChild(r3);
+
+      // timestamp: keep at bottom
+      if (last && timestamp) {
+        setSafeText(last, `Last data received: ${timestamp}`);
       }
     }
-  
+ 
     // KUALITAS TURBIDITAS
     else if (group === 'kualitas_turbiditas') {
       const big = cardEl.querySelector('.big-n');

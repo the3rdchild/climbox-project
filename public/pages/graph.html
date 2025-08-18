@@ -23,18 +23,54 @@
 
 
   <style>
+    /* card illustration container */
+    .card-illustration {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 0.6rem;
+    }
+
+    /* make svg responsive & not too large inside card */
+    .card-illustration svg {
+      max-width: 100%;
+      height: auto;
+      width: 96px; /* adjust size */
+      opacity: 0.98;
+    }
+
+    /* small pulse animation when updated */
+    .card-illustration .pulse {
+      animation: pulse 700ms ease-in-out;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.06); opacity: 0.95; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
     body { background:#f0f3f6; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
     .card { border: 0; border-radius: 10px; box-shadow: 0 2px 6px rgba(12,20,28,0.06); }
     .card .small-chip { font-size: 0.7rem; padding: 0.2rem 0.45rem; border-radius: 999px; background: rgba(255,255,255,0.7); }
     /* custom card colors */
-    .card-satellite { background: linear-gradient(180deg,#d9f46b,#bfe64f); color:#0b1a13; }
+    .card-satellite {
+  background: linear-gradient(180deg, #a8f4c8, #7fdcbf, #4fc4b4, #2fa4a4);
+  color: #0b1a13;
+}
+    .card-satellite2 { background: linear-gradient(180deg,#d9f46b,#bfe64f); color:#0b1a13; }
     .card-buoy { background: linear-gradient(180deg,#c9e6ff,#1976d2); color:#fff; }
+    .card-buoy2 {
+  background: linear-gradient(180deg, #f5f5f5, #9e9e9e, #212121);
+  color: #fff;
+}
     .card-alert { background: linear-gradient(180deg, #ffecd2, #fcb69f); }
     .card-wind { background: linear-gradient(180deg, #a8edea, #d7d6fe); color:#21303a; }
 
     /* small visuals */
     .bar-strip { display:flex; gap:4px; margin-top:5rem; }
     .bar-strip > div { height:8px; border-radius:3px; flex:1; }
+    .bar-strip2 { display:flex; gap:4px; margin-top:1rem; }
+    .bar-strip2 > div { height:8px; border-radius:3px; flex:1; }
     .chip-live { background:#e6f7ff; color:#036; font-weight:700; padding: .25rem .5rem; border-radius:999px;   justify-content: center; align-items: center; }
 
     /* responsive tweaks */
@@ -55,7 +91,6 @@
     aspect-ratio: 1 / 1;
   }
 }
-
   </style>
 </head>
 
@@ -279,6 +314,7 @@
               <div>
                 <div class="title">METEOROLOGI</div>
                 <div class="big-n">--</div>
+                <div class="muted">Suhu Udara (C)</div>
               </div>
               <div class="small-chip">LIVE</div>
             </div>
@@ -287,27 +323,30 @@
   
             <div class="row">
               <div class="col-6">
-                <div class="muted">WIND</div>
+                <div class="muted">Arah Angin</div>
                 <div class="h6 mb-0 field-surface-temp">--</div>
               </div>
               <div class="col-6">
-                <div class="muted">TEMP</div>
+                <div class="muted">Kecepatan Angin (km/h)</div>
                 <div class="h6 mb-0 field-historical-max">--</div>
               </div>
             </div>
   
             <div class="mt-3">
-              <div class="muted">NOTES</div>
+              <div class="muted">Kelembaban Udara (%)</div>
               <div class="fw-bold field-note">--</div>
             </div>
 
-            <div class="bar-strip" aria-hidden="true">
-              <div style="background:#1b7e5a;"></div>
-              <div style="background:#2aa84f;"></div>
-              <div style="background:#ffd166;"></div>
-              <div style="background:#ffb545;"></div>
-              <div style="background:#d84f4f;"></div>
-              <div style="background:#6b1818;"></div>
+            <div class="ms-auto2" style="margin-top: 5px;">
+              <!-- wide wind wave -->
+              <svg width="270" height="100" viewBox="0 0 300 100" fill="none" role="img" aria-label="wind waves">
+                <path d="M0 50 C30 30, 60 70, 90 50 S150 30, 180 50 S240 70, 270 50 S330 30, 360 50" 
+                      stroke="#c0ffa3" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M0 70 C30 50, 60 90, 90 70 S150 50, 180 70 S240 90, 270 70 S330 50, 360 70" 
+                      stroke="#7fdc7f" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M0 30 C30 10, 60 50, 90 30 S150 10, 180 30 S240 50, 270 30 S330 10, 360 30" 
+                      stroke="#bfe64f" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </div>
           </div>
         </div>
@@ -319,19 +358,19 @@
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <div class="title text-dark">PRESIPITASI</div>
-              <div class="small-chip">LIVE</div>
+              <div class="text-dark small-chip">LIVE</div>
             </div>
   
             <div class="mt-2">
               <div class="big-n h3 mb-0 bold">--</div>
-              <div class="muted">Current</div>
+              <div class="muted">Intensitas Hujan (mm/jam)</div>
             </div>
   
             <hr style="border-color: rgba(255,255,255,0.14)">
   
             <div class="mt-2">
               <div class="h2 mb-0 field-alt">--</div>
-              <div class="muted">Secondary</div>
+              <div class="muted">Jarak Permukaan Air Laut (mm)</div>
             </div>
   
             <div class="group-metrics mt-3"></div>
@@ -339,13 +378,27 @@
             <div class="muted mt-2 last-updated">Last data received: --</div>
 
             <div class="d-flex justify-content-center align-items-end" style="height:100px; margin-top: 25px;">
-              <!-- simple buoy illustration -->
-              <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="buoy">
-                <rect x="10" y="40" width="100" height="10" rx="4" fill="rgba(255,255,255,0.08)"></rect>
-                <rect x="54" y="18" width="12" height="22" rx="2" fill="#fff"></rect>
-                <circle cx="60" cy="46" r="10" fill="#fff" opacity="0.9"></circle>
+              <svg width="270" height="100" viewBox="0 0 270 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rain intensity">
+                <!-- Background bar -->
+                <rect x="0" y="75" width="270" height="8" rx="4" fill="rgba(255,255,255,0.4)"></rect>
+            
+                <!-- Rain drops (diposisikan lebih tinggi agar tidak menabrak label) -->
+                <path d="M30 20c0 10-10 10-10 0s10-10 10 0z" fill="#ffffff" opacity="0.9"/>
+                <path d="M60 25c0 10-10 10-10 0s10-10 10 0z" fill="#e0f7fa"/>
+                <path d="M90 31c0 10-10 10-10 0s10-10 10 0z" fill="#b2ebf2"/>
+                <path d="M120 36c0 10-10 10-10 0s10-10 10 0z" fill="#80deea"/>
+                <path d="M150 42c0 10-10 10-10 0s10-10 10 0z" fill="#4dd0e1"/>
+                <path d="M180 48c0 10-10 10-10 0s10-10 10 0z" fill="#26c6da"/>
+                <path d="M210 53c0 10-10 10-10 0s10-10 10 0z" fill="#00acc1"/>
+                <path d="M240 59c0 10-10 10-10 0s10-10 10 0z" fill="#00838f"/>
+            
+                <!-- Labels -->
+                <text x="0" y="100" font-size="12" fill="#000">0 mm/h</text>
+                <text x="100" y="100" font-size="12" fill="#000">20 mm/h</text>
+                <text x="210" y="100" font-size="12" fill="#000"> >50 mm/h</text>
               </svg>
             </div>
+
           </div>
         </div>
       </div>
@@ -365,11 +418,32 @@
               </svg>
             </div> 
             <div class="d-flex align-items-center mt-3">
-              <div class="ms-3">
-                <div class="h6 mb-0">KEY</div>
-                <div class="h3 display-6 fw-bold big-n">--</div>
-                <div class="muted last-updated">Last data received: --</div>
+              <!-- big metrics row -->
+              <div class="row w-100 gx-2 align-items-center">
+                <!-- left: Suhu Air -->
+                <div class="col-6 d-flex align-items-center">
+                  <div>
+                    <div class="h6 mb-0">Suhu Air (C)</div>
+                    <div class="h3 display-6 fw-bold big-n">--</div>
+                  </div>
+                </div>
+            
+                <!-- right: EC -->
+                <div class="col-6 text-end">
+                  <div class="h6 mb-0">EC (mS/cm)</div>
+                  <div class="h2 display-6 fw-bold field-ec-big">--</div>
+                </div>
               </div>
+            </div>
+            
+            <!-- small coords line (stays subtle) -->
+            <div class="mt-2">
+              <div class="muted small field-coords">Lat: --, Lon: --</div>
+            </div>
+            
+            <!-- timestamp remains at the bottom -->
+            <div class="mt-2">
+              <div class="muted last-updated">Last data received: --</div>
             </div>
           </div>
         </div>
@@ -386,22 +460,25 @@
 
             <div class="mt-2">
               <div class="big-n">--</div>
-              <div class="muted">Main metric</div>
+              <div class="muted" style="margin-top: 4px;">TDS (ppm)</div>
             </div>
 
             <hr>
 
             <div class="d-flex">
               <div>
-                <div class="muted">Detail A</div>
-                <div class="mb-1 field-detail-a">--</div>
-                <div class="muted">Detail B</div>
+                <div class="mb-0 fw-bold">pH Rata-Rata:</div>
+                <div class="muted">7,5 - 8,4</div>
+                <div class="mb-0 fw-bold" style="margin-top: 4px;">TDS Rata-Rata:</div>
+                <div class="muted">30k ppm - 35k ppm</div>
               </div>
 
               <div class="ms-auto">
                 <!-- wave avatar -->
-                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" role="img" aria-label="waves">
-                  <path d="M2 12c4-4 6 0 10 0s6-4 10-4" stroke="#7f8c8d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" role="img" aria-label="chemical flask">
+                  <path d="M9 2v6l-4 8a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-4-8V2" stroke="#7f8c8d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9 8h6" stroke="#7f8c8d" stroke-width="1.6" stroke-linecap="round"/>
+                  <path d="M10 14h4" stroke="#7f8c8d" stroke-width="1.6" stroke-linecap="round"/>
                 </svg>
               </div>
             </div>
@@ -413,49 +490,88 @@
       </div>
     <!-- 5: Kualitas Kimia Lanjut -->
       <div class="col-12 col-md-4 col-lg-2">
-        <div class="card card-satellite h-100" data-group="kualitas_kimia_lanjut">
+        <div class="card card-satellite2 h-100" data-group="kualitas_kimia_lanjut">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
                 <div class="title">KUALITAS KIMIA LANJUT</div>
-                <div class="big-n">--</div>
+                <div class="big-n field-primary">--</div>
+                <div class="muted" style="margin-top: 4px;">DO (mg/L)</div>
+
               </div>
               <div class="small-chip">LIVE</div>
             </div>
 
             <hr style="border-color: rgba(0,0,0,0.06)">
 
-            <div class="row">
-              <div class="col-6">
-                <div class="muted">PRIMARY</div>
-                <div class="h6 mb-0 field-primary">--</div>
+              <div class="col-8">
+                <div class="h6 mb-0 ">Pompa</div>
+                <div class="mb-0 field-secondary">--</div>
               </div>
-              <div class="col-6">
-                <div class="muted">SECOND</div>
-                <div class="h6 mb-0 field-secondary">--</div>
-              </div>
-            </div>
+
 
             <div class="mt-3">
               <div class="group-metrics mt-3"></div>
+              <div class="h6 mb-0 ">Oksigen Terlarut</div>
+              <div class="mb-0">~5 hingga ~8 mg/L</div>
               <div class="muted mt-2 last-updated">Last data received: --</div>
             </div>
 
-            <div class="bar-strip" aria-hidden="true">
-              <div style="background:#1b7e5a;"></div>
-              <div style="background:#2aa84f;"></div>
-              <div style="background:#ffd166;"></div>
-              <div style="background:#ffb545;"></div>
-              <div style="background:#d84f4f;"></div>
-              <div style="background:#6b1818;"></div>
+            <div class="bar-strip2" aria-hidden="true">
+              <svg width="100%" height="40" viewBox="0 0 240 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sea-surface oxygen [mg/L]">
+                <defs>
+                  <linearGradient id="oxygenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#e27ea6"/>
+                    <stop offset="10%" stop-color="#c88bd0"/>
+                    <stop offset="20%" stop-color="#8fa7e0"/>
+                    <stop offset="30%" stop-color="#5ec4d4"/>
+                    <stop offset="40%" stop-color="#4fdc9e"/>
+                    <stop offset="50%" stop-color="#7edc4f"/>
+                    <stop offset="60%" stop-color="#d4c94f"/>
+                    <stop offset="70%" stop-color="#f4a64f"/>
+                    <stop offset="80%" stop-color="#e86b3f"/>
+                    <stop offset="90%" stop-color="#d84a3f"/>
+                    <stop offset="100%" stop-color="#e27ea6"/>
+                  </linearGradient>
+                </defs>
+                <rect x="0" y="0" width="240" height="20" fill="url(#oxygenGradient)" />
+                <!-- Tick marks -->
+                <g stroke="#333" stroke-width="1">
+                  <line x1="0" y1="20" x2="0" y2="25"/>
+                  <line x1="24" y1="20" x2="24" y2="25"/>
+                  <line x1="48" y1="20" x2="48" y2="25"/>
+                  <line x1="72" y1="20" x2="72" y2="25"/>
+                  <line x1="96" y1="20" x2="96" y2="25"/>
+                  <line x1="120" y1="20" x2="120" y2="25"/>
+                  <line x1="144" y1="20" x2="144" y2="25"/>
+                  <line x1="168" y1="20" x2="168" y2="25"/>
+                  <line x1="192" y1="20" x2="192" y2="25"/>
+                  <line x1="216" y1="20" x2="216" y2="25"/>
+                  <line x1="240" y1="20" x2="240" y2="25"/>
+                </g>
+                <!-- Labels -->
+                <text x="0"   y="38" font-size="10" fill="#333">5.0</text>
+                <text x="24"  y="38" font-size="10" fill="#333">5.3</text>
+                <text x="48"  y="38" font-size="10" fill="#333">5.6</text>
+                <text x="72"  y="38" font-size="10" fill="#333">5.9</text>
+                <text x="96"  y="38" font-size="10" fill="#333">6.2</text>
+                <text x="120" y="38" font-size="10" fill="#333">6.5</text>
+                <text x="144" y="38" font-size="10" fill="#333">6.8</text>
+                <text x="168" y="38" font-size="10" fill="#333">7.1</text>
+                <text x="192" y="38" font-size="10" fill="#333">7.4</text>
+                <text x="216" y="38" font-size="10" fill="#333">7.7</text>
+                <text x="232" y="38" font-size="10" fill="#333">8.0</text>
+              </svg>
             </div>
+            <div class="muted" style="margin-left: 27%; margin-top: 2px;">Dissolve oxygen mg/L</div>
+            
           </div>
         </div>
       </div>
 
     <!-- 6: Kualitas Turbiditas -->
       <div class="col-12 col-md-4 col-lg-2">
-        <div class="card card-buoy h-100" data-group="kualitas_turbiditas">
+        <div class="card card-buoy2 h-100" data-group="kualitas_turbiditas">
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <div class="title text-dark">KUALITAS TURBIDITAS</div>
@@ -464,7 +580,7 @@
 
             <div class="mt-2">
               <div class="big-n h3 mb-0 bold">--</div>
-              <div class="muted">Main</div>
+              <div class="muted">TSS (mg/l)</div>
             </div>
 
             <div class="d-flex justify-content-between">
@@ -474,21 +590,34 @@
             <hr style="border-color: rgba(255,255,255,0.14)">
 
             <div class="mt-2">
-              <div class="h2 mb-0 field-depth">--</div>
-              <div class="muted">Detail</div>
+              <div class="h6 mb-0 ">TSS (Total Suspended Solids)</div>
+              <div class="mb-0 text-dark">40 hingga 400 mg/l </div>
             </div>
 
             <div class="group-metrics mt-3"></div>
             <div class="muted mt-2 last-updated">Last data received: --</div>
   
             <div class="d-flex justify-content-center align-items-end" style="height:100px; margin-top: 25px;">
-              <!-- simple buoy illustration -->
-              <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="buoy">
-                <rect x="10" y="40" width="100" height="10" rx="4" fill="rgba(255,255,255,0.08)"></rect>
-                <rect x="54" y="18" width="12" height="22" rx="2" fill="#fff"></rect>
-                <circle cx="60" cy="46" r="10" fill="#fff" opacity="0.9"></circle>
+              <svg width="270" height="100" viewBox="0 0 270 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TSS Turbidity">
+                <!-- Background bar -->
+                <rect x="0" y="78" width="270" height="10" rx="5" fill="rgba(255,255,255,0.4)"></rect>
+            
+                <!-- Turbidity blocks -->
+                <rect x="10"  y="55" width="25" height="20" fill="#f5f5f5" />
+                <rect x="45"  y="45" width="25" height="30" fill="#dcdcdc" />
+                <rect x="80"  y="35" width="25" height="40" fill="#bdbdbd" />
+                <rect x="115" y="25" width="25" height="50" fill="#9e9e9e" />
+                <rect x="150" y="15" width="25" height="60" fill="#757575" />
+                <rect x="185" y="10" width="25" height="65" fill="#424242" />
+                <rect x="220" y="5"  width="25" height="70" fill="#212121" />            
+                <!-- Labels -->
+                <text x="12"  y="100" font-size="10" fill="#fff">40</text>
+                <text x="85"  y="100" font-size="10" fill="#fff">150</text>
+                <text x="225" y="100" font-size="10" fill="#fff">400</text>
               </svg>
             </div>
+            
+            
           </div>
         </div>
       </div>
