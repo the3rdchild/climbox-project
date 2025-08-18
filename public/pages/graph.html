@@ -994,42 +994,50 @@
     console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
 
         // Fungsi untuk memuat data lokasi dari JSON
-    async function loadLocations() {
-      try {
-          const response = await fetch('../assets/data/locations.json');
-          const data = await response.json();
-          const foundLocation = data.find(location => location.locationId === locationId);
-          if (foundLocation) {
-              document.getElementById('location-name-display').textContent = foundLocation.name;
-              initMap(foundLocation.coord);
-          } else {
-              console.warn('Location not found:', locationId);
-          }
-      } catch (error) {
-          console.error('Error loading locations:', error);
+        async function loadLocations() {
+    try {
+      const response = await fetch('../assets/data/locations.json');
+      const data = await response.json();
+      const foundLocation = data.find(location => location.locationId === locationId);
+      if (foundLocation) {
+        document.getElementById('location-name-display').textContent = foundLocation.name;
+        initMap(foundLocation); // kirim object, bukan cuma coord
+      } else {
+        console.warn('Location not found:', locationId);
       }
+    } catch (error) {
+      console.error('Error loading locations:', error);
     }
-        // Fungsi untuk menginisialisasi peta
-    function initMap(coord) {
-        const map = L.map('map').setView(coord, 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-        const mk = L.marker(coord).addTo(map);
-        mk.bindPopup(`<strong>${locations[0].name}</strong><br><small>${locations[0].country}</small>`);
-    }
-    function renderLocationList(locations) {
-      const el = document.getElementById('location-list'); // atau sesuai ID aslinya
-      if (!el) return; // kalau nggak ada, langsung keluar
-      el.innerHTML = ''; // sekarang aman
-      locations.forEach(loc => {
-          const li = document.createElement('li');
-          li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
-          li.textContent = loc.name; // Tampilkan nama lokasi
-          el.appendChild(li);
-      });
-    }
-    loadLocations();
+  }
+
+  // Fungsi untuk menginisialisasi peta
+  function initMap(loc) {
+    const map = L.map('map').setView(loc.coord, 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const mk = L.marker(loc.coord).addTo(map);
+    mk.bindPopup(`
+      <strong>${loc.name}</strong><br>
+      <small>${loc.country}</small><br>
+      <small>Lat: ${loc.coord[0]}, Lon: ${loc.coord[1]}</small>
+    `);
+  }
+
+  function renderLocationList(locations) {
+    const el = document.getElementById('location-list');
+    if (!el) return;
+    el.innerHTML = '';
+    locations.forEach(loc => {
+      const li = document.createElement('li');
+      li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
+      li.textContent = loc.name;
+      el.appendChild(li);
+    });
+  }
+
+  loadLocations();
   </script>
   
   <script src="../assets/js/graph-fetch.js"></script>

@@ -591,7 +591,6 @@
 
   // handler to show popup (rows optional: if provided, used; else fetched)
   async function handleMarkerClickShowPopup(map, marker, loc, rowsParam){
-  // 👇 force close any currently open popup
   map.closePopup();
 
   const rows = Array.isArray(rowsParam) && rowsParam.length ? rowsParam : await getLatestRowsForLocation(loc);
