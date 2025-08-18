@@ -416,7 +416,31 @@ function fmtNumber(v, unit) {
       const ec = groupData[ normalizeKey('EC (ms/cm)') ] ?? groupData[ normalizeKey('EC') ];
       const lat = groupData[ normalizeKey('Latitude') ];
       const lon = groupData[ normalizeKey('Longitude') ];
-    
+      updateArrowFromWaterTemp(waterTemp);
+      function updateArrowFromWaterTemp(waterTemp) {
+        const min = 20, max = 38;
+        const clamped = Math.max(min, Math.min(max, waterTemp));
+        const t = (clamped - min) / (max - min); // 0..1
+      
+        // MAPPING utama: kiri = 0°, kanan = 180°
+        const startAngle = -90;   // kiri
+        const endAngle   = 180; // kanan
+      
+        let angle = startAngle + t * (endAngle - startAngle);
+      
+        // normalisasi agar nilai rotasi tetap rapi (-180..180)
+        angle = ((angle + 180) % 360) - 180;
+      
+        // Jika panah default menghadap "atas", set orientationOffset = -90
+        // Jika panah default menghadap "kanan", biarkan 0
+        const orientationOffset = 0;
+        angle += orientationOffset;
+      
+        const arrow = document.getElementById("arrow-pointer");
+        if (arrow) arrow.setAttribute("transform", `rotate(${angle} 21 21)`);
+      }
+      
+
       // big metrics
       setSafeText(big, fmtNumber(asNumberOrNull(waterTemp), '°C'));
       if (ecBig) setSafeText(ecBig, fmtNumber(asNumberOrNull(ec), ''));
