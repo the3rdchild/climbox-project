@@ -16,8 +16,8 @@
     KEYS: {
       timestamp: ['Timestamp','timestamp','time','date'],
       water_temp: ['Water Temp (C)','water temp','water_temp','water temp (c)'],
-      air_temp: ['Temp udara','air temp','air_temp','temperature'],
-      humidity: ['Humidity','humidity','humid'],
+      air_temp: ['Temp udara','Air Temp (C)','air temp','air_temp','temperature'],
+      humidity: ['Air Humidity (%)','Humidity','humidity','humid','Air Humidity'],
       tss: ['TSS (V)','tss','tss_v'],
       ph: ['pH','ph'],
       do_: ['DO (ug/L)','do','do_ug_l'],
@@ -121,12 +121,34 @@
 
   // Build grouped object (for cards) based on SENSOR_GROUPS mapping
   const SENSOR_GROUPS = {
-    meteorologi: ["Wind Direction","Wind Speed (km/h)","Temp udara"],
-    presipitasi: ["Rainfall (mm)","Distance (mm)"],
-    kualitas_fisika: ["Water Temp (C)","EC (ms/cm)"],
-    kualitas_kimia_dasar: ["TDS (ppm)","pH"],
-    kualitas_kimia_lanjut: ["DO (ug/L)"],
-    kualitas_turbiditas: ["TSS (V)"]
+    meteorologi: [
+      "Wind Direction",
+      "Wind Speed (km/h)",
+      "Air Temp (C)",
+      "Air Humidity (%)"
+    ],
+    presipitasi: [
+      "Rainfall (mm)",
+      "Distance (mm)"
+    ],
+    kualitas_fisika: [
+      "Water Temp (C)",
+      "EC (ms/cm)",
+      "Latitude",
+      "Longitude"
+    ],
+    kualitas_kimia_dasar: [
+      "TDS (ppm)",
+      "pH"
+    ],
+    kualitas_kimia_lanjut: [
+      "DO (ug/L)",
+      "Pompa Air Laut",
+      "Pompa Bilas"
+    ],
+    kualitas_turbiditas: [
+      "TSS (V)"
+    ]
   };
 
   function buildGroupForRow(rawRow) {
@@ -271,37 +293,40 @@ function prepareChartArraysFromRows(rows, maxPoints = 7) {
   }
 
   function humanizeKey(k){ return String(k).replace(/_/g,' ').toUpperCase(); }
+// safe text setter
+function setSafeText(el, txt) {
+  if (!el) return;
+  el.textContent = (txt === null || txt === undefined || txt === '') ? '--' : String(txt);
+}
 
-  function renderGroupToCard(cardEl, groupName, groupData, timestamp){
+// format number with optional unit
+function fmtNumber(v, unit) {
+  if (v === null || v === undefined) return '--';
+  if (typeof v === 'number') {
+    // round nicely
+    const n = Math.round(v * 100) / 100;
+    return (unit ? `${n}${unit}` : String(n));
+  }
+  // if string containing number-like value, try to convert
+  const num = Number(String(v).replace(/,/g,''));
+  if (!Number.isNaN(num)) {
+    const n = Math.round(num * 100) / 100;
+    return (unit ? `${n}${unit}` : String(n));
+  }
+  // otherwise return raw string (e.g., ON/OFF)
+  return String(v);
+}
+
+  function renderGroupToCard(cardEl, groupName, groupData, timestamp, meta = {}) {
     if(!cardEl) return;
-    const titleEl = cardEl.querySelector('.title');
-    if(titleEl) titleEl.textContent = humanizeKey(groupName);
-
-    const entries = Object.entries(groupData || {});
-    let main = entries.find(([k,v]) => typeof v === 'number');
-    if(!main) main = entries[0] || [null, null];
-    const [mainKey, mainVal] = main;
-
-    const bigN = cardEl.querySelector('.big-n') || cardEl.querySelector('.h3') || cardEl.querySelector('.h2');
-    if(bigN){
-      bigN.textContent = (mainVal !== null && mainVal !== undefined) ? String(mainVal) : '-';
-      const k = mainKey || '';
-      let unit = '';
-      if(k.includes('km') || k.includes('speed')) unit = ' km/h';
-      if(k.includes('temp') || k.includes('c')) unit = '°C';
-      if(k.includes('mm')) unit = ' mm';
-      if(k.includes('ppm')) unit = ' ppm';
-      if(k.includes('ug') || k.includes('do')) unit = ' µg/L';
-      if(k.includes('ec')) unit = ' mS/cm';
-      if(unit) bigN.innerHTML = `${bigN.textContent}<small class="muted">${unit}</small>`;
+  
+    // write last-updated (timestamp) if present
+    const lastEls = Array.from(cardEl.querySelectorAll('.last-updated'));
+    if (lastEls.length && timestamp) {
+      lastEls.forEach(le => setSafeText(le, `Last data received: ${timestamp}`));
     }
-
-    const lastEls = Array.from(cardEl.querySelectorAll('.muted'));
-    if(lastEls.length){
-      const lastEl = lastEls[lastEls.length-1];
-      if(timestamp) lastEl.textContent = `Last data received: ${timestamp}`;
-    }
-
+  
+    // Fill group-metrics: list top entries (up to 4)
     let listEl = cardEl.querySelector('.group-metrics');
     if(!listEl){
       listEl = document.createElement('div');
@@ -310,26 +335,177 @@ function prepareChartArraysFromRows(rows, maxPoints = 7) {
       body.appendChild(listEl);
     }
     listEl.innerHTML = '';
-    entries.slice(0,4).forEach(([k,v])=>{
+    const entries = Object.entries(groupData || {});
+    // sort numeric first then strings so numeric appears as primary
+    const sorted = entries.sort((a,b) => {
+      const an = (typeof a[1] === 'number') ? 0 : 1;
+      const bn = (typeof b[1] === 'number') ? 0 : 1;
+      return an - bn;
+    });
+  
+    // Build map of first values to populate the specific selectors in each card
+    const values = {};
+    entries.forEach(([k,v]) => { values[k] = v; });
+  
+    // Card-specific placements based on data-group attribute
+    const group = (groupName || '').toLowerCase();
+  
+    // METEOROLOGI card
+    if (group === 'meteorologi') {
+      const bigN = cardEl.querySelector('.big-n');
+      // big metric -> Air Temp (°C) if available, else Wind Speed
+      const air = values[ normalizeKey('Air Temp (C)') ] ?? values[ normalizeKey('Temp udara') ];
+      const windSpeed = values[ normalizeKey('Wind Speed (km/h)') ];
+      setSafeText(bigN, fmtNumber(asNumberOrNull(air) ?? asNumberOrNull(windSpeed), '°C'));
+      // small fields
+      setSafeText(cardEl.querySelector('.field-surface-temp'), values[ normalizeKey('Wind Direction') ] ?? '-');
+      setSafeText(cardEl.querySelector('.field-historical-max'), fmtNumber(asNumberOrNull(windSpeed), ' km/h'));
+      setSafeText(cardEl.querySelector('.field-note'), (values[ normalizeKey('Air Humidity (%)') ] ? `RH ${fmtNumber(asNumberOrNull(values[ normalizeKey('Air Humidity (%)') ]), '%')}` : '--'));
+    }
+  
+    // PRESIPITASI card
+    else if (group === 'presipitasi') {
+      const big = cardEl.querySelector('.big-n');
+      const alt = cardEl.querySelector('.field-alt');
+      const rainfall = values[ normalizeKey('Rainfall (mm)') ];
+      const dist = values[ normalizeKey('Distance (mm)') ];
+      setSafeText(big, fmtNumber(asNumberOrNull(rainfall), ' mm'));
+      setSafeText(alt, fmtNumber(asNumberOrNull(dist), ' mm'));
+    }
+  
+    // KUALITAS FISIKA
+    else if (group === 'kualitas_fisika') {
+      const big = cardEl.querySelector('.big-n');
+      const last = cardEl.querySelector('.last-updated');
+      const waterTemp = values[ normalizeKey('Water Temp (C)') ];
+      const ec = values[ normalizeKey('EC (ms/cm)') ];
+      setSafeText(big, fmtNumber(asNumberOrNull(waterTemp), '°C'));
+      if (last && timestamp) setSafeText(last, `Last data received: ${timestamp}`);
+      // put coordinates in group-metrics
+      const lat = values[ normalizeKey('Latitude') ];
+      const lon = values[ normalizeKey('Longitude') ];
+      listEl.innerHTML = '';
+      if (lat !== undefined || lon !== undefined) {
+        const row = document.createElement('div');
+        row.className = 'd-flex justify-content-between';
+        row.innerHTML = `<div class="muted small">Coords</div><div class="fw-bold small">${lat ?? '-'}, ${lon ?? '-'}</div>`;
+        listEl.appendChild(row);
+      }
+      if (ec !== undefined) {
+        const row = document.createElement('div');
+        row.className = 'd-flex justify-content-between';
+        row.innerHTML = `<div class="muted small">EC</div><div class="fw-bold small">${fmtNumber(asNumberOrNull(ec), ' mS/cm')}</div>`;
+        listEl.appendChild(row);
+      }
+    }
+  
+    // KUALITAS KIMIA DASAR
+    else if (group === 'kualitas_kimia_dasar') {
+      const big = cardEl.querySelector('.big-n');
+      const detailA = cardEl.querySelector('.field-detail-a');
+      const tds = values[ normalizeKey('TDS (ppm)') ];
+      const ph = values[ normalizeKey('pH') ];
+      setSafeText(big, fmtNumber(asNumberOrNull(tds), ' ppm'));
+      setSafeText(detailA, fmtNumber(asNumberOrNull(ph), ''));
+      // populate group-metrics with top entries
+      listEl.innerHTML = '';
+      [['pH', ph], ['TDS', tds]].forEach(([k,v])=>{
+        const row = document.createElement('div');
+        row.className = 'd-flex justify-content-between';
+        row.innerHTML = `<div class="muted small">${k}</div><div class="fw-bold small">${v===null||v===undefined?'-':fmtNumber(asNumberOrNull(v), (k==='pH'?'':' ppm'))}</div>`;
+        listEl.appendChild(row);
+      });
+    }
+  
+    // KUALITAS KIMIA LANJUT
+    else if (group === 'kualitas_kimia_lanjut') {
+      const primary = cardEl.querySelector('.field-primary');
+      const secondary = cardEl.querySelector('.field-secondary');
+      const doVal = values[ normalizeKey('DO (ug/L)') ];
+      const pump1 = values[ normalizeKey('Pompa Air Laut') ];
+      const pump2 = values[ normalizeKey('Pompa Bilas') ];
+      setSafeText(primary, fmtNumber(asNumberOrNull(doVal), ' µg/L'));
+      // show pump statuses in secondary
+      const pumps = [];
+      if (pump1 !== undefined) pumps.push(`Pompa Laut: ${pump1}`);
+      if (pump2 !== undefined) pumps.push(`Pompa Bilas: ${pump2}`);
+      setSafeText(secondary, pumps.length ? pumps.join(' | ') : '--');
+      // add DO to group metrics as well
+      listEl.innerHTML = '';
       const row = document.createElement('div');
       row.className = 'd-flex justify-content-between';
-      row.innerHTML = `<div class="muted small">${humanizeKey(k)}</div><div class="fw-bold small">${v===null||v===undefined||v===''?'-':v}</div>`;
+      row.innerHTML = `<div class="muted small">DO</div><div class="fw-bold small">${fmtNumber(asNumberOrNull(doVal), ' µg/L')}</div>`;
       listEl.appendChild(row);
-    });
+      if (pump1 !== undefined) {
+        const r2 = document.createElement('div');
+        r2.className = 'd-flex justify-content-between';
+        r2.innerHTML = `<div class="muted small">Pompa Laut</div><div class="fw-bold small">${pump1}</div>`;
+        listEl.appendChild(r2);
+      }
+      if (pump2 !== undefined) {
+        const r3 = document.createElement('div');
+        r3.className = 'd-flex justify-content-between';
+        r3.innerHTML = `<div class="muted small">Pompa Bilas</div><div class="fw-bold small">${pump2}</div>`;
+        listEl.appendChild(r3);
+      }
+    }
+  
+    // KUALITAS TURBIDITAS
+    else if (group === 'kualitas_turbiditas') {
+      const big = cardEl.querySelector('.big-n');
+      const fieldDepth = cardEl.querySelector('.field-depth');
+      const tss = values[ normalizeKey('TSS (V)') ];
+      setSafeText(big, fmtNumber(asNumberOrNull(tss), ''));
+      setSafeText(fieldDepth, fmtNumber(asNumberOrNull(tss), ''));
+    }
+  
+    // Generic fallback: if group not matched, fill group-metrics
+    if (!group) {
+      listEl.innerHTML = '';
+      entries.slice(0,4).forEach(([k,v])=>{
+        const row = document.createElement('div');
+        row.className = 'd-flex justify-content-between';
+        row.innerHTML = `<div class="muted small">${k}</div><div class="fw-bold small">${v===null||v===undefined?'-':v}</div>`;
+        listEl.appendChild(row);
+      });
+    }
   }
 
-  function processRowsAndRenderCards(rows){
+  function processRowsAndRenderCards(rows, meta = {}) {
     if (!rows || !Array.isArray(rows) || rows.length === 0) return;
+    // take latest row (real-time snapshot)
     const lastRow = rows[rows.length - 1];
-    const grouped = buildGroupForRow(lastRow);
-    const cards = getTargetCards();
-    const order = ['meteorologi','presipitasi','kualitas_fisika','kualitas_kimia_dasar','kualitas_kimia_lanjut','kualitas_turbiditas'];
-    order.forEach((grpName, i) => {
-      const cardEl = cards[i];
-      const groupData = grouped.groups[grpName] || {};
-      renderGroupToCard(cardEl, grpName, groupData, grouped.timestamp);
+  
+    // flatten keys: normalizeKey used by pickField; but renderer expects normalized-key lookup
+    const flat = {};
+    Object.keys(lastRow || {}).forEach(k => {
+      flat[ normalizeKey(k) ] = lastRow[k];
     });
-    // cache fallback
+  
+    // create grouped object
+    const grouped = { timestamp: pickField(lastRow, cfg.KEYS.timestamp) || (lastRow.Timestamp||lastRow.timestamp||null), groups: {} };
+    for (const [gname, fields] of Object.entries(SENSOR_GROUPS)) {
+      grouped.groups[gname] = {};
+      for (const field of fields) {
+        const nk = normalizeKey(field);
+        grouped.groups[gname][nk] = (flat[nk] !== undefined ? flat[nk] : null);
+      }
+    }
+  
+    // render each card by data-group attribute
+    const order = ['meteorologi','presipitasi','kualitas_fisika','kualitas_kimia_dasar','kualitas_kimia_lanjut','kualitas_turbiditas'];
+    order.forEach((grpName) => {
+      const cardEl = document.querySelector(`[data-group="${grpName}"]`);
+      if (cardEl) {
+        try {
+          renderGroupToCard(cardEl, grpName, grouped.groups[grpName] || {}, grouped.timestamp, meta);
+        } catch (e) {
+          console.warn('renderGroupToCard error', grpName, e);
+        }
+      }
+    });
+  
+    // cache the last raw rows for offline fallback (existing behavior)
     try {
       localStorage.setItem(`${cfg.CACHE_PREFIX}_sensor_${cfg.LOCATION_ID}`, JSON.stringify({
         fetchedAt: new Date().toISOString(),
@@ -339,7 +515,7 @@ function prepareChartArraysFromRows(rows, maxPoints = 7) {
       }));
     } catch(e){}
   }
-
+  
   // ---------- GViz fetch helper ----------
   async function fetchSheetViaGviz(sheetId, sheetName, range=cfg.GVIZ_RANGE) {
     if (!sheetId) throw new Error('sheetId missing');
