@@ -159,11 +159,11 @@
               </ul>
             </li>
             <!--Notification end -->
-            <li class="nav-item d-flex align-items-center">
-              <a href="../pages/sign-in.html" class="nav-link text-body font-weight-bold px-0">
-                <i class="material-symbols-rounded">account_circle</i>
-              </a>
-            </li>
+<li class="nav-item d-flex align-items-center">
+  <a data-user-link href="../pages/sign-in.html" class="nav-link text-body font-weight-bold px-0">
+    <i class="material-symbols-rounded">account_circle</i>
+  </a>
+</li>
           </ul>
         </div>
       </div>
@@ -662,6 +662,39 @@
       if (toggle) toggle.checked = true;
     });
   </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Replace these selectors with actual inputs in your profile/sign-up form
+      // For example add on profile page: <input id="profile-email"> and <input id="profile-wa">
+      const emailInput = document.querySelector('#profile-email'); // create this in HTML if not present
+      const waInput = document.querySelector('#profile-whatsapp'); // create this in HTML if not present
+      const saveBtn = document.querySelector('#profile-save-btn'); // create this button in HTML
+    
+      if (!saveBtn) return; // if you haven't placed inputs, skip
+    
+      saveBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const emailsRaw = emailInput ? emailInput.value.trim() : '';
+        const waRaw = waInput ? waInput.value.trim() : '';
+        const user = { whatsapp: waRaw, emails: emailsRaw.includes(',') ? emailsRaw.split(',').map(s=>s.trim()) : [emailsRaw] };
+    
+        // add or update
+        const res = await window.SENDERS_API.addOrUpdateUser(user);
+        if (res && res.ok) {
+          alert('Saved locally. If you want this to be active for notifications, upload users.json to server (or configure SAVE_USERS_ENDPOINT).');
+          // update in-memory users
+          window.SENDERS_API.loadUsersJson().then(u => { window.SENDERS_USERS = u; });
+          // if no server endpoint set, offer download so operator can upload file:
+          if (!window.SENDERS_API.cfg.SAVE_USERS_ENDPOINT) {
+            const users = JSON.parse(localStorage.getItem('climbox_users') || '[]');
+            window.SENDERS_API.downloadUsersJson(users);
+          }
+        } else {
+          alert('Save failed: ' + (res && res.error ? res.error : 'unknown'));
+        }
+      });
+    });
+    </script>
   <script src="../assets/js/notifications.js"></script>
   <!-- Github buttons -->
   <script async defer src="https://buttons.github.io/buttons.js"></script>
