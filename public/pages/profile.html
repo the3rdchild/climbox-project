@@ -20,6 +20,30 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+<style>
+.button {
+  background-color: #04AA6D; /* Green */
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.button1 {
+  background-color: white;
+  color: black;
+  border: 2px solid #e7e7e7;
+}
+
+.button1:hover {background-color: #e7e7e7;}
+</style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -124,8 +148,8 @@
                  
               </ul>
             </li>
-            <li class="nav-item d-flex align-items-center">
-              <a data-user-link href="../pages/sign-in.html" class="nav-link text-body font-weight-bold px-0">
+            <li class="nav-item d-flex align-items-center" data-user-link>
+              <a href="../pages/sign-in.html" class="nav-link text-body font-weight-bold px-0">
                 <i class="material-symbols-rounded">account_circle</i>
               </a>
             </li>
@@ -154,7 +178,9 @@
               <p class="mb-0 font-weight-normal text-sm">
                 Climbox Antusias
               </p>
+              
             </div>
+            <button class="button button1" onclick="window.climboxAuth.signOut()">Sign out</button>
           </div>
         </div>
         <div class="row">
@@ -265,7 +291,6 @@
             </div>
           </div>
         </div>
-
   </div>
   <footer class="footer py-4  ">
     <div class="container-fluid">
@@ -299,6 +324,12 @@
       </div>
     </div>
   </footer>
+  <script>
+    // redirect jika user sudah login
+    const meta = window.climboxAuth?.getCurrentUserMeta();
+    if (meta) location.href = '/pages/profile.html';
+  </script>
+  <script type="module" src="../services/auth-ui.js"></script>
   <!--   Core JS Files   -->
   <script src="../assets/js/core/popper.min.js"></script>  
   <script src="../assets/js/core/bootstrap.min.js"></script>  
