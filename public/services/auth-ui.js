@@ -38,15 +38,15 @@ function updateUserLink(user) {
 
     if (photoURL) {
       anchor.innerHTML = `
-        <img src="${photoURL}" alt="${displayName}"
+        <img src="${photoURL}" alt=""
              style="width:28px;height:28px;border-radius:50%;object-fit:cover;margin-right:6px;vertical-align:middle;">
-        <span class="d-none d-sm-inline">${displayName}</span>
+        <span class="d-none d-sm-inline"></span>
       `;
     } else {
       // fallback to material icon + name on larger screens
       anchor.innerHTML = `
         <i class="material-symbols-rounded">account_circle</i>
-        <span class="d-none d-sm-inline" style="margin-left:6px">${displayName}</span>
+        <span class="d-none d-sm-inline" style="margin-left:6px"></span>
       `;
     }
   } else {

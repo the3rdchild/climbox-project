@@ -13,3 +13,5 @@ firebase-debug.log
 .env
 users.json
 firebase-config.js
+firestore.rules
+firestore.indexes.json

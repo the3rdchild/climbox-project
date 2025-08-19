@@ -161,11 +161,11 @@
             </li>
             <!--Notification end -->
 
-<li class="nav-item d-flex align-items-center">
-  <a data-user-link href="../pages/sign-in.html" class="nav-link text-body font-weight-bold px-0">
-    <i class="material-symbols-rounded">account_circle</i>
-  </a>
-</li>
+            <li class="nav-item d-flex align-items-center" data-user-link>
+              <a href="../pages/sign-in.html" class="nav-link text-body font-weight-bold px-0">
+                <i class="material-symbols-rounded">account_circle</i>
+              </a>
+            </li>
           </ul>
         </div>
       </div>
@@ -551,6 +551,12 @@
     if (toggle) toggle.checked = true;
   });
   </script>
+  <script type="module" src="/services/firebase-config.js"></script>
+  <script type="module" src="/services/auth-ui.js"></script>
+  <script type="module" src="/services/setup-users.js"></script>
+  <script type="module" src="/services/firestore-and-profile.js"></script>
+  <script type="module" src="/services/auth-forms-and-profile-ui.js"></script>
+  
 </body>
 
 </html>
