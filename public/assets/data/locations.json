@@ -1,17 +1,17 @@
 [
   { 
-    "locationId": "pulau_komodo", 
-    "name": "Pulau Komodo", 
+    "locationId": "climbox", 
+    "name": "Climbox", 
     "coord": [-8.525, 119.501], 
     "country": "Indonesia", 
     "sheetId":"1ArdjxcfEmBIaUZGj8EMvDi7wrbHpmXUdLNFmtYOWiu8" 
   },
   { 
-    "locationId": "pulau_2", 
-    "name": "Pulau 2", 
+    "locationId": "noabox", 
+    "name": "Noabox", 
     "coord": [-8.525, 122.501], 
     "country": "Indonesia", 
-    "sheetId":"1E1uGFo16pdFXHxE4iQnc_Xj-xUa--XhVrXvobM5s1Fo"
+    "sheetId":"1xlBylrfCAQDhCGYq5eWTXBwCTypq8bPpcen4dGRkbIs"
   },
   { 
     "locationId": "pulau_3", 
