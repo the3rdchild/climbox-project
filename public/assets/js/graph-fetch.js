@@ -682,7 +682,7 @@ function fmtNumber(v, unit) {
     if (window.CLIMBOX_CONFIG) Object.assign(cfg, window.CLIMBOX_CONFIG);
     const urlParams = new URLSearchParams(window.location.search);
     const qloc = urlParams.get('location');
-    cfg.LOCATION_ID = cfg.LOCATION_ID || qloc || 'pulau_komodo';
+    cfg.LOCATION_ID = cfg.LOCATION_ID || qloc ;
 
     // load mapping to get sheetId if not set
     const locs = await loadLocationsMap();
