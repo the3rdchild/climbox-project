@@ -10,37 +10,29 @@
 
   <script>
     const routes = {
-      "/": { path: "/pages/dashboard.html", title: "Dashboard - ClimBox" },
-      "/dashboard": { path: "/pages/dashboard.html", title: "Dashboard - ClimBox" },
-      "/map": { path: "/pages/map.html", title: "Map - ClimBox" },
-      "/notifications": { path: "/pages/notifications.html", title: "Notifications - ClimBox" },
-      "/profile": { path: "/pages/profile.html", title: "Profile - ClimBox" },
-      "/sign-in": { path: "/pages/sign-in.html", title: "Sign In - ClimBox" },
-      "/sign-up": { path: "/pages/sign-up.html", title: "Sign Up - ClimBox" }
+      "/": "/pages/dashboard.html", // Default
+      "/dashboard": "/pages/dashboard.html",
+      "/map": "/pages/map.html",
+      "/notifications": "/pages/notifications.html",
+      "/profile": "/pages/profile.html",
+      "/sign-in": "/pages/sign-in.html",
+      "/sign-up": "/pages/sign-up.html"
     };
 
     const appDiv = document.getElementById('app');
 
     const loadPage = async (path) => {
-    const route = routes[path] || routes["/"];
-    try {
-      const response = await fetch(route);
-      const html = await response.text();
-      appDiv.innerHTML = html;
-      window.scrollTo(0, 0);
-
-      // extract <title>...</title> from the loaded HTML
-      const match = html.match(/<title>(.*?)<\/title>/i);
-      if (match && match[1]) {
-        document.title = match[1];
+      const route = routes[path] || routes["/"];
+      try {
+        const response = await fetch(route);
+        const html = await response.text();
+        appDiv.innerHTML = html;
+        window.scrollTo(0, 0); // reset scroll position
+      } catch (error) {
+        console.error("Error loading page:", error);
+        appDiv.innerHTML = "<p>Error loading page.</p>";
       }
-    } catch (error) {
-      console.error("Error loading page:", error);
-      appDiv.innerHTML = "<p>Error loading page.</p>";
-      document.title = "Error - ClimBox";
-    }
-  };
-
+    };
 
     const handleLocationChange = () => {
       const path = window.location.pathname;
