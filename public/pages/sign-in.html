@@ -20,6 +20,31 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+<style>
+  .input-group { position: relative; }
+.input-group .form-label {
+  position: absolute;
+  left: 0px;
+  top: 10px;
+  transition: transform .15s, opacity .15s;
+  pointer-events: none;
+  color: #6c757d;
+}
+
+/* input kosong -> label terlihat (default) */
+/* bila ada placeholder-shown (kosong) -> show label; bila tidak kosong -> hide */
+.input-group input:placeholder-shown + .form-label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* input memiliki value -> sembunyikan label */
+.input-group input:not(:placeholder-shown) + .form-label,
+.input-group input:focus + .form-label {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+</style>
 </head>
 
 <body class="bg-gray-200">
@@ -116,13 +141,13 @@
               <div class="card-body">
                 <form id="form-signin" role="form" class="text-start">
                   <div class="input-group input-group-outline my-3">
-                    <label class="form-label">Email</label>
-                    <input id="signin-email" type="email" class="form-control">
-                  </div>
+                    <input id="signin-email" type="email" class="form-control" placeholder=" ">
+                    <label class="form-label" for="signin-email">Nomor Whatsapp/Email</label>
+                  </div>                 
                   <div class="input-group input-group-outline mb-3">
-                    <label class="form-label">Password</label>
-                    <input id="signin-password" type="password" class="form-control">
-                  </div>
+                    <input id="signin-password" type="password" class="form-control" placeholder=" ">
+                    <label class="form-label" for="signin-password">Password</label>
+                  </div>                 
                   <div class="form-check form-switch d-flex align-items-center mb-3">
                     <input id="signin-remember" class="form-check-input" type="checkbox" checked>
                     <label class="form-check-label mb-0 ms-3" for="signin-remember">Remember me</label>

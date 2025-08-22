@@ -20,6 +20,66 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+<style>
+  /* Floating label (pure CSS) for .input-group.input-group-outline */
+.input-group.input-group-outline {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+/* ensure input has space for the floating label */
+.input-group.input-group-outline .form-control.floating-input {
+  width: 100%;
+  padding: 14px 12px 8px; /* top padding to leave room for label */
+  box-sizing: border-box;
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 6px;
+  transition: box-shadow .12s ease, border-color .12s ease;
+}
+
+/* label positioning (floating) */
+.input-group.input-group-outline .form-label {
+  position: absolute;
+  left: 0px;
+  top: -10px;
+  margin: 0;
+  pointer-events: none;
+  font-size: .9rem;
+  color: rgba(0,0,0,0.6);
+  transition: transform .14s ease, opacity .14s ease;
+  transform-origin: left center;
+  background: transparent;
+  padding: 0 4px; /* small padding to keep label clear of input text */
+}
+
+/* when input is empty (placeholder shown) => label visible */
+.input-group.input-group-outline .floating-input:placeholder-shown + .form-label {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* when input has value OR input is focused => hide (or lift) the label */
+.input-group.input-group-outline .floating-input:not(:placeholder-shown) + .form-label,
+.input-group.input-group-outline .floating-input:focus + .form-label {
+  opacity: 0;
+  transform: translateY(-10px) scale(.98);
+}
+
+/* optional: nicer focus style for input */
+.input-group.input-group-outline .floating-input:focus {
+  outline: none;
+  border-color: rgba(25,118,210,0.9);
+  box-shadow: 0 0 0 0.12rem rgba(25,118,210,0.08);
+}
+
+/* small screens tweak */
+@media (max-width: 480px) {
+  .input-group.input-group-outline .form-label { top: 8px; left: 10px; font-size: .88rem; }
+  .input-group.input-group-outline .form-control.floating-input { padding-top: 16px; }
+}
+
+</style>
 </head>
 
 <body class="">
@@ -101,17 +161,20 @@
                 <div class="card-body">
                   <form id="form-signup" role="form">
                     <div class="input-group input-group-outline mb-3">
-                      <label class="form-label">Name</label>
-                      <input id="signup-name" type="text" class="form-control">
+                      <input id="signup-name" type="text" class="form-control floating-input" placeholder=" ">
+                      <label class="form-label" for="signup-name">Name</label>
                     </div>
+                    
                     <div class="input-group input-group-outline mb-3">
-                      <label class="form-label">Email</label>
-                      <input id="signup-email" type="email" class="form-control">
+                      <input id="signup-email" type="email" class="form-control floating-input" placeholder=" ">
+                      <label class="form-label" for="signup-email">Nomor Whatsapp/Email</label>
                     </div>
+                    
                     <div class="input-group input-group-outline mb-3">
-                      <label class="form-label">Password</label>
-                      <input id="signup-password" type="password" class="form-control">
+                      <input id="signup-password" type="password" class="form-control floating-input" placeholder=" ">
+                      <label class="form-label" for="signup-password">Password</label>
                     </div>
+                    
                     ...
                     <div class="text-center">
                       <button id="signup-btn" type="button" class="btn btn-lg bg-gradient-dark btn-lg w-100 mt-4 mb-0">Sign Up</button>
