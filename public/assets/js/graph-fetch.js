@@ -207,7 +207,7 @@ function parseMaybeGvizDate(v) {
     if (!isNaN(d.getTime())) return d;
   } catch(e){}
 
-  // Try MM/DD/YYYY HH:MM:SS style (e.g. "8/14/2025 23:59:05")
+  // Try MM/DD/YYYY HH:MM:SS style
   try {
     const s = String(v).trim();
     const parts = s.split(' ');
