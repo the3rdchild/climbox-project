@@ -102,7 +102,7 @@
         Silahkan masuk ke dalam komunitas climbox-project untuk dapatkan notifikasi sensor serta informasi lebih lanjut melalui link dibawah ini:
       </p>
       <p class="text-sm">
-        <a href="${joinLink}" class="text-primary text-bold">Link masuk ke komunitas climbox-project</a>.
+        <a href="${joinLink}" class="text-primary text-bold">Link masuk ke dalam komunitas climbox-project</a>.
       </p>
       <p class="text-sm">
         *Gunakan nomor whatsapp yang aktif untuk masuk ke dalam komunitas
@@ -153,7 +153,7 @@
       if (target) {
         target.innerHTML = `
           <h5 class="mb-1">Belum Masuk</h5>
-          <p class="mb-0">Silakan <a href="/pages/sign-in.html">masuk</a> untuk mengelola profil dan preferensi notifikasi.</p>
+          <p class="mb-0">Silakan <a href="/pages/sign-in.html">masuk</a> untuk bergabung ke dalam komunitas kita dan mendapatkan notifikasi sensor melalui Whatsapp.</p>
         `;
       }
       return;
