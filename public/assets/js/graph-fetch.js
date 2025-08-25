@@ -331,6 +331,37 @@
     return String(v);
   }
 
+  // helper: set arrow rotation based on water temperature
+function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
+  try {
+    // prefer arrow inside this card; fallback to global id
+    let arrow = null;
+    if (cardEl) arrow = cardEl.querySelector('#arrow-pointer');
+    if (!arrow) arrow = document.getElementById('arrow-pointer');
+    if (!arrow) return;
+
+    const tVal = asNumberOrNull(waterTempValue);
+    if (tVal === null) {
+      arrow.setAttribute("transform", `rotate(0 21 21)`);
+      return;
+    }
+
+    const min = (cfg && cfg.ARROW && cfg.ARROW.min !== undefined) ? Number(cfg.ARROW.min) : 20;
+    const max = (cfg && cfg.ARROW && cfg.ARROW.max !== undefined) ? Number(cfg.ARROW.max) : 38;
+    const clamped = Math.max(min, Math.min(max, tVal));
+    const t = (clamped - min) / (max - min); // 0..1
+
+    const startAngle = -90;
+    const endAngle = 180;
+    let angle = startAngle + t * (endAngle - startAngle);
+    angle = ((angle + 180) % 360) - 180;
+
+    arrow.setAttribute("transform", `rotate(${angle} 21 21)`);
+  } catch (e) {
+    console.warn('setArrowFromWaterTempInCard error', e);
+  }
+}
+
   function renderGroupToCard(cardEl, groupName, groupData, timestamp, meta = {}) {
     if(!cardEl) return;
 
@@ -412,6 +443,9 @@
       setSafeText(big, fmtNumber(asNumberOrNull(waterTemp), '°C'));
       if (ecBig) setSafeText(ecBig, fmtNumber(asNumberOrNull(ec), ''));
 
+      // ADD THIS LINE (call arrow updater)
+      setArrowFromWaterTempInCard(cardEl, waterTemp);
+
       if (coordsEl) {
         const latTxt = (lat === undefined || lat === null || lat === '') ? '-' : String(lat);
         const lonTxt = (lon === undefined || lon === null || lon === '') ? '-' : String(lon);
@@ -421,6 +455,7 @@
         setSafeText(last, `Last data received: ${timestamp}`);
       }
     }
+
 
     // KUALITAS KIMIA DASAR
     else if (group === 'kualitas_kimia_dasar') {
