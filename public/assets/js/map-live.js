@@ -1,6 +1,6 @@
 (function () {
   const cfg = Object.assign({
-    MQTT_WS: 'wss://broker.emqx.io:8084/mqtt',
+    MQTT_WS: 'wss://test.mosquitto.org:8081/mqtt',
     MQTT_TOPIC_BASE: 'climbox',
     MQTT_SUBSCRIBE_WILDCARD: false,
     MQTT_RECONNECT_MS: 5000

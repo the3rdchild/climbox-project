@@ -40,7 +40,7 @@
     },
   
     "MQTT": {
-      "MQTT_WS": "",
+      "MQTT_WS": "wss://test.mosquitto.org:8081/mqtt",
       "MQTT_USERNAME": "",
       "MQTT_PASSWORD": "",
       "MQTT_TOPIC_BASE": "climbox",
