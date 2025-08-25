@@ -680,7 +680,7 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
 
     const urlParams = new URLSearchParams(window.location.search);
     const qloc = urlParams.get('location');
-    cfg.LOCATION_ID = cfg.LOCATION_ID || qloc || 'pulau_komodo';
+    cfg.LOCATION_ID = cfg.LOCATION_ID || qloc || 'climbox';
 
     const locs = await loadLocationsMap();
     const mapping = (locs || []).find(l => l.locationId === cfg.LOCATION_ID || l.id === cfg.LOCATION_ID) || null;

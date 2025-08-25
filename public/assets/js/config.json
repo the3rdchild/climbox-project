@@ -8,7 +8,7 @@
   
     "KEYS": {
       "timestamp": ["Timestamp","timestamp","time","date"],
-      "water_temp": ["Water Temp (C)","water temp","water_temp","water temp (c)"],
+      "water_temp": ["Water Temp (C)","water temp","water_temp","water temp (c)","waterTempStr","temp"],
       "air_temp": ["Temp udara","Air Temp (C)","air temp","air_temp","temperature"],
       "humidity": ["Air Humidity (%)","Humidity","humidity","humid","Air Humidity"],
       "tss": ["TSS (V)","tss","tss_v"],
@@ -23,8 +23,8 @@
     },
   
     "FIELD_ALIASES": {
-      "distance": ["Ultrasonic Distance (cm)", "Distance (mm)", "Distance (cm)", "distance"],
-      "air_temp": ["Air Temp (C)", "Temp udara", "air_temp"],
+      "water_temp": ["Water Temp (C)","Water Temp","water temp","water_temp","WaterTemp","temp","temperature","waterTempStr"],
+      "distance": ["Distance (mm)","Distance (cm)","Ultrasonic Distance (cm)","distance","dist"],
       "do": ["DO (ug/L)", "do", "do_ug_l"],
       "tss": ["TSS (V)", "tss"],
       "ec": ["EC (ms/cm)", "ec"]

@@ -359,36 +359,100 @@
   const GF = window.CLIMBOX_GRAPH_FETCH || null;
 
   function normalizeKeyLocal(key) {
-    if (key === undefined || key === null) return '';
-    return String(key).trim().toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  if (key === undefined || key === null) return '';
+  return String(key)
+    .replace(/\u00A0/g, ' ')            // NBSP -> space
+    .trim()
+    .toLowerCase()
+    .replace(/\(.*?\)/g, '')            // remove parentheses
+    .replace(/[°µµgΛ\/\\]+/g,'')        // strip some unit glyph junk
+    .replace(/[^a-z0-9]+/g, '_')        // non-alnum -> underscore
+    .replace(/^_+|_+$/g, '');
+}
+
+function pickFieldFromRow(row, candidates) {
+  if (!row) return null;
+  const candArr = Array.isArray(candidates) ? candidates : (candidates ? [candidates] : []);
+  // normalize candidate tokens
+  const candNorms = candArr.map(c => normalizeKeyLocal(c)).filter(Boolean);
+
+  // build map normalizedKey -> actualKey
+  const normMap = {};
+  for (const actualKey of Object.keys(row)) {
+    const nk = normalizeKeyLocal(actualKey);
+    if (!normMap[nk]) normMap[nk] = actualKey;
   }
 
-  function pickFieldFromRow(row, candidates) {
-    if (!row || !candidates) return null;
-    // exact normalized match
-    for (const cand of candidates) {
-      const norm = normalizeKeyLocal(cand);
-      const foundKey = Object.keys(row).find(k => normalizeKeyLocal(k) === norm);
-      if (foundKey) return row[foundKey];
-    }
-    // substring fallback
-    const lowcands = candidates.map(c => normalizeKeyLocal(c));
-    for (const k of Object.keys(row)) {
-      const nk = normalizeKeyLocal(k);
-      for (const lc of lowcands) {
-        if (nk.includes(lc) || lc.includes(nk)) return row[k];
-      }
-    }
-    return null;
+  // 1) exact normalized match (candidate -> key)
+  for (const cn of candNorms) {
+    if (cn && normMap[cn]) return row[normMap[cn]];
   }
 
-  function asNumberOrNullLocal(v) {
-    if (v === null || v === undefined || (typeof v === 'string' && v.trim()==='')) return null;
-    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
-    const s = String(v).replace(/,/g,'').trim();
-    const n = Number(s);
-    return Number.isFinite(n) ? n : null;
+  // 2) substring match (either way)
+  for (const cn of candNorms) {
+    for (const nk of Object.keys(normMap)) {
+      if (!nk || !cn) continue;
+      if (nk.includes(cn) || cn.includes(nk)) return row[normMap[nk]];
+    }
   }
+
+  // 3) token match: all tokens from candidate found in key
+  for (const cn of candNorms) {
+    const tokens = cn.split('_').filter(Boolean);
+    if (!tokens.length) continue;
+    for (const nk of Object.keys(normMap)) {
+      if (tokens.every(t => nk.includes(t))) return row[normMap[nk]];
+    }
+  }
+
+  // 4) heuristic common patterns (helpful for Water Temp vs Temperature Water etc)
+  const heuristics = [
+    ['water','temp'],
+    ['water','temperature'],
+    ['temp','water'],
+    ['distance','mm'],
+    ['ultrasonic','distance'],
+    ['do','ug','l'],
+    ['air','temp'],
+  ];
+  for (const tokens of heuristics) {
+    for (const nk of Object.keys(normMap)) {
+      if (tokens.every(t => nk.includes(t))) return row[normMap[nk]];
+    }
+  }
+
+  // 5) final fallback: try to find numeric-like keys
+  for (const nk of Object.keys(normMap)) {
+    const val = row[normMap[nk]];
+    if (val !== null && val !== undefined && String(val).trim() !== '') return val;
+  }
+
+  return null;
+}
+
+function asNumberOrNullLocal(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  let s = String(v).trim();
+  if (s === '') return null;
+  // remove common units and non-numeric chars except minus and dot and exponent
+  s = s.replace(/[°℃º]/g,'')      // temp symbols
+       .replace(/(ug|µg|mg|g|ppm|ms|mS|cm|mm|\/l|\/kg)/gi,'')
+       .replace(/[, ]+/g,'')      // remove commas/spaces
+       .replace(/[^\d\.\-eE+]/g,''); 
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+
+// debug helper to inspect keys
+function debugRowKeys(row) {
+  if (!row) { console.log('debugRowKeys: no row provided'); return; }
+  console.group('debugRowKeys');
+  Object.keys(row).forEach(k => {
+    console.log(`key: "${k}" => normalized: "${normalizeKeyLocal(k)}" value:`, row[k]);
+  });
+  console.groupEnd();
+}
   function fmtNumberLocal(v, unit='') {
     const n = asNumberOrNullLocal(v);
     if (n === null) return '--';
@@ -462,24 +526,39 @@
 
   // Renders popup card HTML using GF.cfg.KEYS if available
   function renderPopupCardHTMLStringFromLocAndRow(loc, latestRow) {
-    const keys = (GF && GF.cfg && GF.cfg.KEYS) ? GF.cfg.KEYS : {
-      water_temp: ['Water Temp (C)','water temp','water_temp','WaterTemp'],
-      ec: ['EC (ms/cm)','ec','ec_ms_cm','EC (mS/cm)'],
-      timestamp: ['Timestamp','timestamp','time','ts','created_at']
-    };
+  // default candidates (fallback)
+  const defaultKeys = {
+    water_temp: ['Water Temp (C)','water temp','water_temp','WaterTemp', 'waterTempStr', 'temp'],
+    ec: ['EC (ms/cm)','ec','ec_ms_cm','EC (mS/cm)'],
+    timestamp: ['Timestamp','timestamp','time','ts','created_at']
+  };
 
-    const wtRaw = latestRow ? pickFieldFromRow(latestRow, keys.water_temp) : null;
-    const ecRaw = latestRow ? pickFieldFromRow(latestRow, keys.ec) : null;
+  // pick keys from GF.cfg.KEYS if provided, else fallback to defaults
+  const keys = {
+    water_temp: (GF && GF.cfg && GF.cfg.KEYS && GF.cfg.KEYS.water_temp) ? GF.cfg.KEYS.water_temp : defaultKeys.water_temp,
+    ec:         (GF && GF.cfg && GF.cfg.KEYS && GF.cfg.KEYS.ec)         ? GF.cfg.KEYS.ec         : defaultKeys.ec,
+    timestamp:  (GF && GF.cfg && GF.cfg.KEYS && GF.cfg.KEYS.timestamp)  ? GF.cfg.KEYS.timestamp  : defaultKeys.timestamp
+  };
 
-    const latVal = latestRow ? (pickFieldFromRow(latestRow, ['Latitude','Lat','latitude']) ?? (loc.coord && loc.coord[0] ? loc.coord[0] : null)) : (loc.coord && loc.coord[0] ? loc.coord[0] : null);
-    const lonVal = latestRow ? (pickFieldFromRow(latestRow, ['Longitude','Lon','longitude']) ?? (loc.coord && loc.coord[1] ? loc.coord[1] : null)) : (loc.coord && loc.coord[1] ? loc.coord[1] : null);
-    const tsVal = latestRow ? (pickFieldFromRow(latestRow, keys.timestamp)) : null;
+  // read raw values using robust pickFieldFromRow
+  const wtRaw = latestRow ? pickFieldFromRow(latestRow, keys.water_temp) : null;
+  const ecRaw = latestRow ? pickFieldFromRow(latestRow, keys.ec) : null;
 
-    const latTxt = latVal === undefined || latVal === null || latVal === '' ? '--' : String(latVal);
-    const lonTxt = lonVal === undefined || lonVal === null || lonVal === '' ? '--' : String(lonVal);
-    const lastText = tsVal ? (isNaN(new Date(tsVal).getTime()) ? String(tsVal).slice(0,19) : new Date(tsVal).toLocaleString()) : '--';
+  // If water temp not found, print helpful debug (you can comment out later)
+  if (wtRaw === null) {
+    console.warn(`Popup: water_temp not found for ${loc.locationId || loc.name || 'unknown'}. Try debugRowKeys(latestRow) to inspect columns.`);
+    debugRowKeys(latestRow); // uncomment to print full key list
+  }
 
-    const arrowId = `arrow-pointer-${Date.now()}-${Math.round(Math.random()*1000)}`;
+  const latVal = latestRow ? (pickFieldFromRow(latestRow, ['Latitude','Lat','latitude']) ?? (loc.coord && loc.coord[0] ? loc.coord[0] : null)) : (loc.coord && loc.coord[0] ? loc.coord[0] : null);
+  const lonVal = latestRow ? (pickFieldFromRow(latestRow, ['Longitude','Lon','longitude']) ?? (loc.coord && loc.coord[1] ? loc.coord[1] : null)) : (loc.coord && loc.coord[1] ? loc.coord[1] : null);
+  const tsVal = latestRow ? (pickFieldFromRow(latestRow, keys.timestamp)) : null;
+
+  const latTxt = latVal === undefined || latVal === null || latVal === '' ? '--' : String(latVal);
+  const lonTxt = lonVal === undefined || lonVal === null || lonVal === '' ? '--' : String(lonVal);
+  const lastText = tsVal ? (isNaN(new Date(tsVal).getTime()) ? String(tsVal).slice(0,19) : new Date(tsVal).toLocaleString()) : '--';
+
+  const arrowId = `arrow-pointer-${Date.now()}-${Math.round(Math.random()*1000)}`;
 
     const html = `
       <div style="width:100%;box-sizing:border-box;padding:0.6rem;">
@@ -691,7 +770,7 @@
             return null;
           };
           const NumberOrNull = v => { if (v === null||v===undefined||v==='') return null; const n = Number(String(v).replace(/,/g,'')); return Number.isFinite(n)?n:null; };
-          const c1_wt = last.map(r => pick(r, ['Water Temp (C)','water temp','water_temp','WaterTemp']));
+          const c1_wt = last.map(r => pick(r, ['Water Temp (C)','water temp','water_temp','WaterTemp', 'temp', 'waterTempStr']));
           const c1_hum = last.map(r => pick(r, ['Humidity','humidity','humid']));
           const c1_air = last.map(r => pick(r, ['Temp udara','air temp','air_temp','temperature']));
           safeSetChart(window.chart1, labels, [c1_wt, c1_hum, c1_air]);
