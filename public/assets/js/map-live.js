@@ -15,7 +15,7 @@
   function renderStaticLocationList() {
     const ul = document.getElementById('location-list');
     if (!ul) {
-      console.warn('map-live: #location-list not found in DOM');
+      // console.warn('map-live: #location-list not found in DOM');
       return;
     }
     ul.innerHTML = '';
@@ -289,8 +289,8 @@
         }
       });
 
-      mqttClient.on('error', (e) => console.warn('map-live mqtt error', e));
-      mqttClient.on('close', () => console.log('map-live mqtt closed'));
+      mqttClient.on('error', (e) => console.warn(' ', e)); //map-live mqtt error
+      mqttClient.on('close', () => console.log(' ')); //map-live mqtt closed
     } catch (e) {
       console.warn('map-live initMqtt error', e);
     }

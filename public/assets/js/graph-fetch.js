@@ -715,7 +715,7 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
           console.warn('No prepared data from GViz');
         }
         if (Array.isArray(rows) && rows.length) processRowsAndRenderCards(rows);
-        console.log('GViz loaded', { locationId: cfg.LOCATION_ID, sheetId, sheetName, rows: Array.isArray(rows)?rows.length:null });
+        // console.log('GViz loaded', { locationId: cfg.LOCATION_ID, sheetId, sheetName, rows: Array.isArray(rows)?rows.length:null });
       } catch (e) {
         console.warn('GViz fetch/render failed (history). Make sure sheet is public if you want GViz. Error:', e && e.message ? e.message : e);
       }

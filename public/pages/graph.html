@@ -818,7 +818,7 @@
         }
       }
     } catch (e) {
-      console.warn('loadCachedRowsForLocation: latest.json failed', e);
+      // console.warn('loadCachedRowsForLocation: latest.json failed', e);
     }
 
   const rowsAccum = [];
@@ -939,8 +939,8 @@
                 country: ' '
             }
         ];
-    // Cek MQTT_WS
-    console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
+
+    // console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
 
         // Fungsi untuk memuat data lokasi dari JSON
         async function loadLocations() {

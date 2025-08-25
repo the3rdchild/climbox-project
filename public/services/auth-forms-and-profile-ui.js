@@ -147,7 +147,7 @@
 
     // If still no meta, show sign-in prompt in profile content area
     if (!meta) {
-      console.warn('No user meta in profile UI — rendering sign-in prompt');
+      // console.warn('No user meta in profile UI — rendering sign-in prompt');
       const wrapper = document.querySelector('.profile-container') || document.body;
       const target = wrapper.querySelector('.col-auto.my-auto .h-100') || wrapper.querySelector('.card-body') || wrapper;
       if (target) {
