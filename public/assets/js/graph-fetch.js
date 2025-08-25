@@ -347,12 +347,12 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
     }
 
     const min = (cfg && cfg.ARROW && cfg.ARROW.min !== undefined) ? Number(cfg.ARROW.min) : 20;
-    const max = (cfg && cfg.ARROW && cfg.ARROW.max !== undefined) ? Number(cfg.ARROW.max) : 38;
+    const max = (cfg && cfg.ARROW && cfg.ARROW.max !== undefined) ? Number(cfg.ARROW.max) : 40;
     const clamped = Math.max(min, Math.min(max, tVal));
     const t = (clamped - min) / (max - min); // 0..1
 
-    const startAngle = -90;
-    const endAngle = 180;
+    const startAngle = -89;
+    const endAngle = 190;
     let angle = startAngle + t * (endAngle - startAngle);
     angle = ((angle + 180) % 360) - 180;
 
