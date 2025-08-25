@@ -90,7 +90,7 @@
         // console.log('Loaded external config from', url);
       }
     } catch (e) {
-      console.warn('Failed to load external config', url, e && e.message ? e.message : e);
+      // console.warn('Failed to load external config', url, e && e.message ? e.message : e);
     }
   }
 
@@ -299,10 +299,12 @@
       if (!chart.data.datasets[idx]) return;
       chart.data.datasets[idx].data = Array.isArray(arr) ? arr.slice() : [];
     });
-    try { chart.update(); } catch(e){ console.warn('chart update failed', e); }
+    try { chart.update(); } catch(e){ 
+      // console.warn('chart update failed', e); 
+    }
   }
 
-  // ---------- cards rendering ----------
+  // ---------- cards` rendering ----------
   function getTargetCards(){
     const container = document.querySelector('.container-fluid.py-4 .row.g-3');
     if(!container) return [];
@@ -358,7 +360,7 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
 
     arrow.setAttribute("transform", `rotate(${angle} 21 21)`);
   } catch (e) {
-    console.warn('setArrowFromWaterTempInCard error', e);
+    // console.warn('setArrowFromWaterTempInCard error', e);
   }
 }
 
@@ -549,7 +551,7 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
         try {
           renderGroupToCard(cardEl, grpName, grouped.groups[grpName] || {}, grouped.timestamp, meta);
         } catch (e) {
-          console.warn('renderGroupToCard error', grpName, e);
+          // console.warn('renderGroupToCard error', grpName, e);
         }
       }
     });
@@ -597,17 +599,17 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
   async function initMqttIfEnabled() {
     const mqttCfg = cfg.MQTT || {};
     if (!mqttCfg.MQTT_WS) {
-      console.log('MQTT disabled (MQTT_WS not provided)');
+      // console.log('MQTT disabled (MQTT_WS not provided)');
       return;
     }
     try {
       await loadScript(mqttScriptUrl);
     } catch(e) {
-      console.warn('Failed to load mqtt lib', e);
+      // console.warn('Failed to load mqtt lib', e);
       return;
     }
     if (!window.mqtt) {
-      console.warn('mqtt lib not found after load');
+      // console.warn('mqtt lib not found after load');
       return;
     }
     const opts = {
@@ -635,13 +637,15 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
         mqttConnected = false;
       });
       mqttClient.on('error', (err) => {
-        console.warn('MQTT error', err && err.message ? err.message : err);
+        // console.warn('MQTT error', err && err.message ? err.message : err);
       });
       mqttClient.on('message', (topic, message) => {
         try {
           const txt = message.toString();
           let payload = null;
-          try { payload = JSON.parse(txt); } catch(e) { console.warn('mqtt msg non-json', topic); return; }
+          try { payload = JSON.parse(txt); } catch(e) { 
+            // console.warn('mqtt msg non-json', topic); 
+          return; }
           let rows = null;
           if (Array.isArray(payload)) rows = payload;
           else if (payload && Array.isArray(payload.rows)) rows = payload.rows;
@@ -650,12 +654,16 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
           else if (payload && typeof payload === 'object' && Object.values(payload).some(v=>Array.isArray(v))) {
             for (const v of Object.values(payload)) if (Array.isArray(v)) { rows = v; break; }
           }
-          if (!rows || !Array.isArray(rows) || rows.length === 0) { console.warn('MQTT message with no usable rows', topic); return; }
+          if (!rows || !Array.isArray(rows) || rows.length === 0) { 
+            // console.warn('MQTT message with no usable rows', topic); 
+          return; }
           processRowsAndRenderCards(rows);
-        } catch(e) { console.error('Error handling mqtt message', e); }
+        } catch(e) { 
+          // console.error('Error handling mqtt message', e); 
+        }
       });
     } catch(e) {
-      console.warn('mqtt connect failed', e);
+      // console.warn('mqtt connect failed', e);
     }
   }
 
@@ -664,7 +672,8 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
     if (!mqttClient || !mqttConnected || mqttSubscribed) return;
     const topic = mqttCfg.MQTT_SUBSCRIBE_WILDCARD ? `${mqttCfg.MQTT_TOPIC_BASE}/${cfg.LOCATION_ID}/#` : `${mqttCfg.MQTT_TOPIC_BASE}/${cfg.LOCATION_ID}/latest`;
     mqttClient.subscribe(topic, { qos: 1 }, (err) => {
-      if (err) console.warn('mqtt subscribe error', err);
+      if (err) 
+        console.warn('mqtt subscribe error', err);
       else { mqttSubscribed = true; 
         // console.log('Subscribed to', topic); 
       }
