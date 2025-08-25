@@ -108,7 +108,7 @@
         const day = d.toLocaleString('en-GB', { timeZone: 'Asia/Jakarta', day: '2-digit' });
         const mon = d.toLocaleString('en-GB', { timeZone: 'Asia/Jakarta', month: 'short' }); // e.g. "Aug"
         const time = d.toLocaleString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
-        return `${day} ${mon}, ${time}`;
+        return `${day} ${mon}: ${time}`;
     } catch (e) {
         return String(ts || '');
     }
