@@ -94,7 +94,7 @@
                 const v = last[k];
                 if (lk.includes('water') && lk.includes('temp')) { const n = Number(String(v).replace(',', '.')); if (!isNaN(n)) water = n; }
                 if (lk.includes('temp') && (lk.includes('udara') || lk.includes('air'))) { const n = Number(String(v).replace(',', '.')); if (!isNaN(n)) air = n; }
-                if (!water && (lk === 'water temp (c)' || lk.includes('sst'))) { const n = Number(String(last[k]).replace(',', '.')); if (!isNaN(n)) water = n; }
+                if (!water && (lk === 'Water Temp (C)' || lk.includes('sst'))) { const n = Number(String(last[k]).replace(',', '.')); if (!isNaN(n)) water = n; }
                 if (!air && (lk === 'temp udara' || lk === 'temp_udara')) { const n = Number(String(last[k]).replace(',', '.')); if (!isNaN(n)) air = n; }
               }
               let txt = '';

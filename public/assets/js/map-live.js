@@ -82,7 +82,7 @@
         const n = toNum(raw); if (n !== null && air === null) air = n;
       }
       // fallback exact-ish
-      if (water === null && (lk === 'water temp (c)' || lk === 'water_temp_c')) {
+      if (water === null && (lk === 'water temp (c)' || lk === 'water_temp_c' || lk === 'water_temp')) {
         const n = toNum(raw); if (n !== null) water = n;
       }
       if (air === null && (lk === 'temp udara' || lk === 'temp_udara')) {
