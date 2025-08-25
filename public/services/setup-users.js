@@ -146,4 +146,4 @@ window.deleteAllUserIndexDocs = async function() {
   }
 };
 
-console.log("setup-users module loaded. Use window.createSampleUsers(), window.deleteAllUsersDocs(), window.deleteAllUserIndexDocs().");
+// console.log("setup-users module loaded. Use window.createSampleUsers(), window.deleteAllUsersDocs(), window.deleteAllUserIndexDocs().");

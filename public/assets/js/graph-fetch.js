@@ -87,7 +87,7 @@
       const parsed = JSON.parse(txt);
       if (parsed && typeof parsed === 'object') {
         deepMerge(cfg, parsed);
-        console.log('Loaded external config from', url);
+        // console.log('Loaded external config from', url);
       }
     } catch (e) {
       console.warn('Failed to load external config', url, e && e.message ? e.message : e);
@@ -618,11 +618,25 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
     };
     try {
       mqttClient = window.mqtt.connect(mqttCfg.MQTT_WS, opts);
-      mqttClient.on('connect', () => { mqttConnected = true; ensureSubscribe(); console.log('MQTT connected (browser)'); });
-      mqttClient.on('reconnect', () => console.log('MQTT reconnecting...'));
-      mqttClient.on('close', () => { mqttConnected = false; mqttSubscribed = false; console.log('MQTT closed'); });
-      mqttClient.on('offline', () => { mqttConnected = false; });
-      mqttClient.on('error', (err) => console.warn('MQTT error', err && err.message ? err.message : err));
+      mqttClient.on('connect', () => {
+        mqttConnected = true;
+        ensureSubscribe();
+        // console.log('MQTT connected (browser)');
+      });
+      mqttClient.on('reconnect', () => {
+        // console.log('MQTT reconnecting...');
+      });
+      mqttClient.on('close', () => {
+        mqttConnected = false;
+        mqttSubscribed = false;
+        // console.log('MQTT closed');
+      });
+      mqttClient.on('offline', () => {
+        mqttConnected = false;
+      });
+      mqttClient.on('error', (err) => {
+        console.warn('MQTT error', err && err.message ? err.message : err);
+      });
       mqttClient.on('message', (topic, message) => {
         try {
           const txt = message.toString();
@@ -651,7 +665,9 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
     const topic = mqttCfg.MQTT_SUBSCRIBE_WILDCARD ? `${mqttCfg.MQTT_TOPIC_BASE}/${cfg.LOCATION_ID}/#` : `${mqttCfg.MQTT_TOPIC_BASE}/${cfg.LOCATION_ID}/latest`;
     mqttClient.subscribe(topic, { qos: 1 }, (err) => {
       if (err) console.warn('mqtt subscribe error', err);
-      else { mqttSubscribed = true; console.log('Subscribed to', topic); }
+      else { mqttSubscribed = true; 
+        // console.log('Subscribed to', topic); 
+      }
     });
   }
 
@@ -704,14 +720,14 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
         console.warn('GViz fetch/render failed (history). Make sure sheet is public if you want GViz. Error:', e && e.message ? e.message : e);
       }
     } else {
-      console.warn('No sheetId available for GViz history (set window.CLIMBOX_CONFIG.SHEET_ID or add to locations.json)');
+      // console.warn('No sheetId available for GViz history (set window.CLIMBOX_CONFIG.SHEET_ID or add to locations.json)');
     }
 
     try {
       await initMqttIfEnabled();
     } catch(e){ console.warn('mqtt init err', e); }
 
-    console.log('graph-fetch initialized', { locationId: cfg.LOCATION_ID, cfgSummary: { mqtt: !!(cfg.MQTT && cfg.MQTT.MQTT_WS), groups: Object.keys(cfg.SENSOR_GROUPS || {}).length } });
+    // console.log('graph-fetch initialized', { locationId: cfg.LOCATION_ID, cfgSummary: { mqtt: !!(cfg.MQTT && cfg.MQTT.MQTT_WS), groups: Object.keys(cfg.SENSOR_GROUPS || {}).length } });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

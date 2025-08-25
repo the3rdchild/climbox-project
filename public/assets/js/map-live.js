@@ -8,7 +8,6 @@
 
   // ensure global locations array exists (map page defines it before loading this file)
   if (!Array.isArray(window.locations)) {
-    console.warn('map-live: global "locations" array not found. Creating empty array.');
     window.locations = window.locations || [];
   }
 
@@ -139,7 +138,7 @@
           });
           window.chart1 = ch;
           if (chartCreationTimer) { clearInterval(chartCreationTimer); chartCreationTimer = null; }
-          console.log('map-live: created chart1 (shared with graph.html)');
+          // console.log('map-live: created chart1 (shared with graph.html)');
         } catch (e) {
           console.warn('map-live: Chart creation failed, will retry', e);
         }
@@ -229,19 +228,19 @@
       mqttClient = window.mqtt.connect(cfg.MQTT_WS, { reconnectPeriod: cfg.MQTT_RECONNECT_MS || 5000, connectTimeout: 10000 });
 
       mqttClient.on('connect', () => {
-        console.log('map-live: mqtt connected');
+        // console.log('map-live: mqtt connected');
         if (cfg.MQTT_SUBSCRIBE_WILDCARD) {
           const wildcard = `${cfg.MQTT_TOPIC_BASE}/+/latest`;
           mqttClient.subscribe(wildcard, { qos: 1 }, (err) => {
-            if (err) console.warn('map-live subscribe wildcard error', err);
-            else console.log('map-live subscribed', wildcard);
+            // if (err) console.warn('map-live subscribe wildcard error', err);
+            // else console.log('map-live subscribed', wildcard);
           });
         } else {
           window.locations.forEach(loc => {
             const topic = `${cfg.MQTT_TOPIC_BASE}/${loc.locationId}/latest`;
             mqttClient.subscribe(topic, { qos: 1 }, (err) => {
-              if (err) console.warn('map-live subscribe err', topic, err);
-              else console.log('map-live subscribed', topic);
+              // if (err) console.warn('map-live subscribe err', topic, err);
+              // else console.log('map-live subscribed', topic);
             });
           });
         }
@@ -463,6 +462,6 @@ function openGraph(locationId) {
     // attach API globally (clearer names)
     window.MAP_LIVE = Object.assign(window.MAP_LIVE || {}, MAP_API);
     // keep backwards compatibility if someone expected MAP_LIVE.onMarkerClicked via previous API
-    console.log('map-live: initialized, MAP_LIVE API:', Object.keys(MAP_API));
+    // console.log('map-live: initialized, MAP_LIVE API:', Object.keys(MAP_API));
   });
 })();
