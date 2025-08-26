@@ -153,7 +153,9 @@
       if (target) {
         target.innerHTML = `
           <h5 class="mb-1">Belum Masuk</h5>
-          <p class="mb-0">Silakan <a href="/pages/sign-in.html">masuk</a> untuk bergabung ke dalam komunitas kita dan mendapatkan notifikasi sensor melalui Whatsapp.</p>
+          <p class="mb-0" style="color: black;">
+            Silakan <a href="/pages/sign-in.html" style="color: #007bff; text-decoration: none;">masuk</a> untuk bergabung ke dalam komunitas kita dan mendapatkan notifikasi sensor melalui Whatsapp.
+          </p>
         `;
       }
       return;
