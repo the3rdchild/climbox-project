@@ -143,6 +143,15 @@
     const n = Number(s);
     return Number.isFinite(n) ? n : null;
   }
+  
+  function asBooleanOrNull(v) {
+    if (v === null || v === undefined || (typeof v === 'string' && v.trim() === '')) return null;
+    const s = String(v).toLowerCase().trim();
+    if (s === 'on' || s === 'on ' || s === '1' || s === 'true') return true;
+    if (s === 'off' || s === 'off ' || s === '0' || s === 'false') return false;
+    return null;
+  }
+
 
   // Get candidate labels for a canonical key: look into FIELD_ALIASES, KEYS mapping, fallback to the key itself
   function candidatesForCanonicalKey(canonicalKey) {
@@ -242,54 +251,85 @@
     return null;
   }
 
-  function prepareChartArraysFromRows(rows, maxPoints = 7) {
-    if (!Array.isArray(rows) || rows.length === 0) return null;
-    const slice = rows.slice(-Math.max(1, maxPoints));
-
-    const labels = slice.map(r => {
-      const rawTs = pickField(r, cfg.KEYS && cfg.KEYS.timestamp ? cfg.KEYS.timestamp : ['Timestamp','timestamp','time','date']);
-      const dt = parseMaybeGvizDate(rawTs);
-      if (dt) {
-        return `${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
-      }
-      if (rawTs !== null && rawTs !== undefined) {
-        try {
-          const dt2 = new Date(String(rawTs));
-          if (!isNaN(dt2.getTime())) return `${pad(dt2.getHours())}:${pad(dt2.getMinutes())}:${pad(dt2.getSeconds())}`;
-        } catch(e){}
-        return String(rawTs).slice(0, 8);
-      }
-      return '';
+  // New function to filter rows for numerical data for a given set of keys
+  function filterNumericalRows(rows, keys, maxPoints) {
+    if (!rows || !Array.isArray(rows)) return [];
+    const filteredRows = rows.filter(r => {
+        return keys.some(key => {
+            const val = asNumberOrNull(pickField(r, [key]));
+            return val !== null;
+        });
     });
+    return filteredRows.slice(-Math.max(1, maxPoints));
+}
+  
+function prepareChartArraysFromRows(rows, maxPoints = 20) {
+  if (!Array.isArray(rows) || rows.length === 0) return null;
 
-    // helper to pick by canonical key via cfg.KEYS mapping (if present)
-    function pickByKeyCanonical(row, canonicalKey) {
-      const nk = normalizeKey(canonicalKey);
-      const candidates = [];
-      if (cfg.FIELD_ALIASES && cfg.FIELD_ALIASES[nk]) candidates.push(...cfg.FIELD_ALIASES[nk]);
-      if (cfg.KEYS && cfg.KEYS[nk]) candidates.push(...cfg.KEYS[nk]);
-      if (candidates.length === 0) candidates.push(canonicalKey);
-      return pickField(row, candidates);
+  // The logic for Chart 1 remains the same as it shows all historical data
+  const slice_chart1 = rows.slice(-Math.max(1, maxPoints));
+  const labels_chart1 = slice_chart1.map(r => {
+    const rawTs = pickField(r, cfg.KEYS && cfg.KEYS.timestamp ? cfg.KEYS.timestamp : ['Timestamp','timestamp','time','date']);
+    const dt = parseMaybeGvizDate(rawTs);
+    if (dt) {
+      return `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
     }
-
-    const c1_wt = slice.map(r => asNumberOrNull(pickByKeyCanonical(r, 'water_temp')));
-    const c1_hum = slice.map(r => asNumberOrNull(pickByKeyCanonical(r, 'humidity')));
-    const c1_air = slice.map(r => asNumberOrNull(pickByKeyCanonical(r, 'air_temp')));
-
-    const c2_tss = slice.map(r => asNumberOrNull(pickByKeyCanonical(r, 'tss')));
-    const c2_ph = slice.map(r => asNumberOrNull(pickByKeyCanonical(r, 'ph')));
-
-    const c3_do = slice.map(r => asNumberOrNull(pickByKeyCanonical(r, 'do')));
-    const c3_ec = slice.map(r => asNumberOrNull(pickByKeyCanonical(r, 'ec')));
-    const c3_tds = slice.map(r => asNumberOrNull(pickByKeyCanonical(r, 'tds')));
-
-    return {
-      labels,
-      chart1: [c1_wt, c1_hum, c1_air],
-      chart2: [c2_tss, c2_ph],
-      chart3: [c3_do, c3_ec, c3_tds]
-    };
+    return '';
+  });
+  function pickByKeyCanonical(row, canonicalKey) {
+    const nk = normalizeKey(canonicalKey);
+    const candidates = [];
+    if (cfg.FIELD_ALIASES && cfg.FIELD_ALIASES[nk]) candidates.push(...cfg.FIELD_ALIASES[nk]);
+    if (cfg.KEYS && cfg.KEYS[nk]) candidates.push(...cfg.KEYS[nk]);
+    if (candidates.length === 0) candidates.push(canonicalKey);
+    return pickField(row, candidates);
   }
+  const c1_hum = slice_chart1.map(r => asNumberOrNull(pickByKeyCanonical(r, 'humidity')));
+  const c1_air = slice_chart1.map(r => asNumberOrNull(pickByKeyCanonical(r, 'air_temp')));
+
+
+  // Filter for Chart 2
+  const keys_chart2 = ['water_temp', 'tss', 'ph'];
+  const filtered_chart2 = filterNumericalRows(rows, keys_chart2, 5);
+  const labels_chart2 = filtered_chart2.map(r => {
+    const rawTs = pickField(r, cfg.KEYS && cfg.KEYS.timestamp ? cfg.KEYS.timestamp : ['Timestamp','timestamp','time','date']);
+    const dt = parseMaybeGvizDate(rawTs);
+    if (dt) {
+      return `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    }
+    return '';
+  });
+  const c2_wt = filtered_chart2.map(r => asNumberOrNull(pickByKeyCanonical(r, 'water_temp')));
+  const c2_tss = filtered_chart2.map(r => asNumberOrNull(pickByKeyCanonical(r, 'tss')));
+  const c2_ph = filtered_chart2.map(r => asNumberOrNull(pickByKeyCanonical(r, 'ph')));
+
+  // Filter for Chart 3
+  const keys_chart3 = ['do', 'ec', 'tds'];
+  const filtered_chart3 = filterNumericalRows(rows, keys_chart3, 5);
+  const labels_chart3 = filtered_chart3.map(r => {
+    const rawTs = pickField(r, cfg.KEYS && cfg.KEYS.timestamp ? cfg.KEYS.timestamp : ['Timestamp','timestamp','time','date']);
+    const dt = parseMaybeGvizDate(rawTs);
+    if (dt) {
+      return `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    }
+    return '';
+  });
+  const c3_do = filtered_chart3.map(r => asNumberOrNull(pickByKeyCanonical(r, 'do')));
+  const c3_ec = filtered_chart3.map(r => asNumberOrNull(pickByKeyCanonical(r, 'ec')));
+  const c3_tds = filtered_chart3.map(r => asNumberOrNull(pickByKeyCanonical(r, 'tds')));
+
+
+  return {
+    labels: labels_chart1,
+    labels_chart1,
+    chart1: [c1_hum, c1_air],
+    labels_chart2,
+    chart2: [c2_wt, c2_tss, c2_ph],
+    labels_chart3,
+    chart3: [c3_do, c3_ec, c3_tds]
+  };
+}
+
 
   // safe chart setter
   function safeSetChart(chart, labels, datasetArrays) {
@@ -404,7 +444,7 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
       let lastEl = cardEl.querySelector('.last-updated');
       if (!lastEl) {
         lastEl = document.createElement('div');
-        lastEl.className = 'muted last-updated';
+        lastEl.className = 'muted small last-updated';
         lastEl.style.marginTop = '8px';
         const body = cardEl.querySelector('.card-body') || cardEl;
         body.appendChild(lastEl);
@@ -717,9 +757,9 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
         const rows = await fetchSheetViaGviz(sheetId, sheetName, cfg.GVIZ_RANGE);
         const prepared = prepareChartArraysFromRows(rows, parseInt(cfg.HISTORY_POINTS || 7, 10));
         if (prepared) {
-          safeSetChart(window.chart1, prepared.labels, prepared.chart1);
-          safeSetChart(window.chart2, prepared.labels, prepared.chart2);
-          safeSetChart(window.chart3, prepared.labels, prepared.chart3);
+          safeSetChart(window.chart1, prepared.labels_chart1, prepared.chart1);
+          safeSetChart(window.chart2, prepared.labels_chart2, prepared.chart2);
+          safeSetChart(window.chart3, prepared.labels_chart3, prepared.chart3);
         } else {
           console.warn('No prepared data from GViz');
         }

@@ -122,7 +122,7 @@
             data: {
               labels: [],
               datasets: [
-                { label: 'Water Temp (°C)', data: [], borderColor: 'blue', fill: false },
+                // { label: 'Water Temp (°C)', data: [], borderColor: 'blue', fill: false },
                 { label: 'Humidity (%)', data: [], borderColor: 'green', fill: false },
                 { label: 'Air Temp (°C)', data: [], borderColor: 'orange', fill: false }
               ]

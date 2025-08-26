@@ -640,354 +640,650 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <script type="module">
-  const ctx1 = document.getElementById('chart1').getContext('2d');
-  const ctx2 = document.getElementById('chart2').getContext('2d');
-  const ctx3 = document.getElementById('chart3').getContext('2d');
-
-  const chart1 = new Chart(ctx1, {
-    type: 'line',
-    data: {
-      labels: [],
-      datasets: [
-        {
-          label: 'Water Temp (°C)',
-          data: [],
-          borderColor: 'blue',
-          fill: false,
-        },
-        {
-          label: 'Humidity (%)',
-          data: [],
-          borderColor: 'green',
-          fill: false,
-        },
-        {
-          label: 'Air Temp (°C)',
-          data: [],
-          borderColor: 'orange',
-          fill: false,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          title: {
-              display: true,
-              text: 'Temperature / Humidity'
+    const ctx1 = document.getElementById('chart1').getContext('2d');
+    const ctx2 = document.getElementById('chart2').getContext('2d');
+    const ctx3 = document.getElementById('chart3').getContext('2d');
+  
+    const chart1 = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Humidity (%)',
+            data: [],
+            borderColor: 'green',
+            fill: false,
+          },
+          {
+            label: 'Air Temp (°C)',
+            data: [],
+            borderColor: 'orange',
+            fill: false,
           }
-        },
-        x: {
-          title: {
-              display: true,
-              text: 'Time'
-          }
-        }
-      }
-    }
-  });
-  window.chart1 = chart1;
-
-  const chart2 = new Chart(ctx2, {
-    type: 'line',
-    data: {
-      labels: [],
-      datasets: [
-        {
-          label: 'TSS (V)',
-          data: [],
-          borderColor: 'purple',
-          fill: false,
-        },
-        {
-          label: 'pH',
-          data: [],
-          borderColor: 'red',
-          fill: false,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
             title: {
-              display: true,
-              text: 'TSS / pH'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Time',
-          }
-        }
-      }
-    }
-  });
-  window.chart2 = chart2;
-
-  const chart3 = new Chart(ctx3, {
-    type: 'line',
-    data: {
-          labels: [],
-          datasets: [
-        {
-          label: 'DO (µg/L)',
-          data: [],
-          borderColor: 'cyan',
-          fill: false,
-        },
-        {
-          label: 'EC (mS/cm)',
-          data: [],
-          borderColor: 'magenta',
-          fill: false,
-        },
-        {
-          label: 'TDS (ppm)',
-          data: [],
-          borderColor: 'yellow',
-          fill: false,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-            title: {
-              display: true,
-              text: 'DO / EC / TDS'
+                display: true,
+                text: 'Temperature'
             }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Time'
+          },
+          x: {
+            title: {
+                display: true,
+                text: 'Time'
+            }
           }
         }
       }
-    }
-  });
-  window.chart3 = chart3;
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const locationId = urlParams.get('location');
-    if (!locationId) {
-      window.location.href = '/pages/map.html';
-    }
-
-  function parseTs(ts) {
-    if (!ts) return null;
-  const isoTry = new Date(ts);
-    if (!isNaN(isoTry.getTime())) return isoTry;
-    try {
-      const parts = ts.split(' ');
-      const dParts = parts[0].split('/');
-      if (dParts.length === 3) {
-        const month = parseInt(dParts[0],10);
-        const day = parseInt(dParts[1],10);
-        const year = parseInt(dParts[2],10);
-        const t = parts[1] || '00:00:00';
-        const dt = new Date(year, month-1, day, ...t.split(':').map(n=>parseInt(n,10)));
-        if (!isNaN(dt.getTime())) return dt;
+    });
+    window.chart1 = chart1;
+  
+const chart2 = new Chart(ctx2, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Water Temp (°C)',
+        data: [],
+        borderColor: 'blue',
+        fill: false,
+        tension: 0.2,
+        pointRadius: 4,
+        yAxisID: 'y'                // left axis (for temp / pH)
+      },
+      {
+        label: 'TSS (V)',
+        data: [],
+        borderColor: 'purple',
+        fill: false,
+        tension: 0.2,
+        pointRadius: 4,
+        yAxisID: 'yTSS'             // right axis (for TSS large values)
+      },
+      {
+        label: 'pH',
+        data: [],
+        borderColor: 'red',
+        fill: false,
+        tension: 0.2,
+        pointRadius: 4,
+        yAxisID: 'y'                // left axis (same as temp)
       }
-    } catch(e){}
-    return new Date(ts);
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    spanGaps: false,              // do NOT join across missing values
+    scales: {
+      x: {
+        title: { display: true, text: 'Time' }
+      },
+      y: {
+        type: 'linear',
+        position: 'left',
+        title: { display: true, text: 'Water Temp (°C) / pH' },
+        min: 0,
+        ticks: { stepSize: 5 }
+      },
+      yTSS: {
+        type: 'linear',
+        position: 'right',
+        title: { display: true, text: 'TSS (V)' },
+        grid: { drawOnChartArea: false }, // avoid grid duplication
+        // optional: tighten this domain if TSS extreme
+        // suggested auto, else set min/max here
+      }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+window.chart2 = chart2;
+
+
+// chart3: separate axes so big EC/TDS don't hide small DO values
+const chart3 = new Chart(ctx3, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'DO (µg/L)',
+        data: [],
+        borderColor: 'cyan',
+        fill: false,
+        tension: 0.2,
+        pointRadius: 4,
+        yAxisID: 'yDo'
+      },
+      {
+        label: 'EC (mS/cm)',
+        data: [],
+        borderColor: 'magenta',
+        fill: false,
+        tension: 0.2,
+        pointRadius: 4,
+        yAxisID: 'yEc'
+      },
+      {
+        label: 'TDS (ppm)',
+        data: [],
+        borderColor: 'yellow',
+        fill: false,
+        tension: 0.2,
+        pointRadius: 4,
+        yAxisID: 'yEc'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    spanGaps: false,
+    scales: {
+      x: {
+        title: { display: true, text: 'Time' }
+      },
+      yDo: {
+        type: 'linear',
+        position: 'left',
+        title: { display: true, text: 'DO (µg/L)' }
+      },
+      yEc: {
+        type: 'linear',
+        position: 'right',
+        title: { display: true, text: 'EC (mS/cm) / TDS (ppm)' },
+        grid: { drawOnChartArea: false }
+      }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+window.chart3 = chart3;
+  
+    const urlParams = new URLSearchParams(window.location.search);
+    const locationId = urlParams.get('location');
+      if (!locationId) {
+        window.location.href = '/pages/map.html';
+      }
+  
+    function parseTs(ts) {
+      if (!ts) return null;
+    const isoTry = new Date(ts);
+      if (!isNaN(isoTry.getTime())) return isoTry;
+      try {
+        const parts = ts.split(' ');
+        const dParts = parts[0].split('/');
+        if (dParts.length === 3) {
+          const month = parseInt(dParts[0],10);
+          const day = parseInt(dParts[1],10);
+          const year = parseInt(dParts[2],10);
+          const t = parts[1] || '00:00:00';
+          const dt = new Date(year, month-1, day, ...t.split(':').map(n=>parseInt(n,10)));
+          if (!isNaN(dt.getTime())) return dt;
+        }
+      } catch(e){}
+      return new Date(ts);
+    }
+  
+    async function loadCachedRowsForLocation(locationId, opts = {}) {
+  const MAX_DAYS = opts.days || 7;
+  if (!locationId) return [];
+  console.log('loadCachedRowsForLocation start for', locationId);
+
+  // 1) try latest.json (fast) but guard for non-json
+  try {
+    const latestUrl = `/data/${encodeURIComponent(locationId)}/latest.json`;
+    const resp = await fetch(latestUrl, { cache: 'no-store' });
+    console.log('tried', latestUrl, 'status', resp.status, 'ct=', resp.headers.get('content-type'));
+    if (resp.ok) {
+      const ct = (resp.headers.get('content-type') || '').toLowerCase();
+      if (ct.includes('application/json') || ct.includes('text/json')) {
+        try {
+          const latest = await resp.json();
+          if (latest && latest.sheetName) {
+            const sheetFile = `/data/${encodeURIComponent(locationId)}/${encodeURIComponent(latest.sheetName)}.json`;
+            try {
+              const r = await fetch(sheetFile, { cache: 'no-store' });
+              console.log('tried', sheetFile, 'status', r.status);
+              if (r.ok) {
+                const rows = await r.json();
+                console.log('loaded rows from sheetFile count=', Array.isArray(rows)?rows.length:0);
+                return normalizeAndSortRows(rows);
+              }
+            } catch (e) {
+              console.warn('failed fetching sheetFile', sheetFile, e);
+            }
+          } else {
+            console.log('latest.json parsed but no sheetName', latest);
+          }
+        } catch (e) {
+          console.warn('latest.json parse failed despite content-type json', e);
+        }
+      } else {
+        // try reading text for debug
+        const text = await resp.text();
+        console.warn('latest.json response is not JSON — preview (first 400 chars):', text.slice(0,400));
+      }
+    } else {
+      console.log('latest.json not OK (status not 200)');
+    }
+  } catch (e) {
+    console.warn('loadCachedRowsForLocation: latest.json fetch failed', e);
   }
 
-  async function loadCachedRowsForLocation(locationId, opts = {}) {
-    const MAX_DAYS = opts.days || 7;
-    try {
-      const latestRes = await fetch(`/data/${encodeURIComponent(locationId)}/latest.json`, { cache: 'no-store' });
-      if (latestRes.ok) {
-        const latest = await latestRes.json();
-        if (latest && latest.sheetName) {
-          const sheetFile = `/data/${encodeURIComponent(locationId)}/${encodeURIComponent(latest.sheetName)}.json`;
-          const r = await fetch(sheetFile, { cache: 'no-store' });
-          if (r.ok) {
-            const rows = await r.json();
-            return normalizeAndSortRows(rows);
+  // 2) try GF.fetchSheetViaGviz if available using locations.json
+  try {
+    if (window.CLIMBOX_GRAPH_FETCH && typeof window.CLIMBOX_GRAPH_FETCH.fetchSheetViaGviz === 'function') {
+      try {
+        const locJsonPath = (window.CLIMBOX_GRAPH_FETCH.cfg && window.CLIMBOX_GRAPH_FETCH.cfg.LOCATIONS_JSON) ? window.CLIMBOX_GRAPH_FETCH.cfg.LOCATIONS_JSON : '../assets/data/locations.json';
+        const r = await fetch(locJsonPath, { cache: 'no-store' });
+        if (r.ok) {
+          const mappings = await r.json();
+          const candidate = (mappings || []).find(m => {
+            const id = (m.locationId || m.id || '').toString();
+            const name = (m.name || m.label || '').toString().toLowerCase();
+            return (locationId && id === String(locationId)) || (name === String(locationId).toLowerCase());
+          });
+          if (candidate) {
+            const sheetId = candidate.sheetId || candidate.sheetid || candidate.sheet;
+            if (sheetId) {
+              let sheetName = candidate.sheetName || candidate.sheetname || candidate.sheet;
+              if (!sheetName) sheetName = `data_${new Date().toISOString().slice(0,10)}`;
+              try {
+                console.log('Attempting GViz fetch for sheetId', sheetId, 'sheetName', sheetName);
+                const fetched = await window.CLIMBOX_GRAPH_FETCH.fetchSheetViaGviz(sheetId, sheetName);
+                if (Array.isArray(fetched) && fetched.length) {
+                  console.log('GViz fetched rows count=', fetched.length);
+                  return normalizeAndSortRows(fetched);
+                } else {
+                  console.log('GViz returned no rows');
+                }
+              } catch (e) {
+                console.warn('GViz fetch failed', e);
+              }
+            }
+          } else {
+            console.log('no mapping found in locations.json for', locationId);
           }
         }
-      }
-    } catch (e) {
-      // console.warn('loadCachedRowsForLocation: latest.json failed', e);
-    }
-
-  const rowsAccum = [];
-    for (let i = 0; i < MAX_DAYS; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().slice(0,10);
-      const candidate = `/data/${encodeURIComponent(locationId)}/sensorData_${dateStr}.json`;
-      try {
-        const resp = await fetch(candidate, { cache: 'no-store' });
-        if (!resp.ok) continue;
-        const partial = await resp.json();
-        if (Array.isArray(partial)) rowsAccum.push(...partial);
       } catch (e) {
+        console.warn('error trying GF.fetchSheetViaGviz path', e);
       }
+    } else {
+      console.log('Graph-fetch (GF) not available or lacks fetchSheetViaGviz');
     }
+  } catch (e) {
+    console.warn('GViz branch error', e);
+  }
+
+  // 3) fallback: scan local sensorData_<date>.json for recent days
+  const rowsAccum = [];
+  for (let i = 0; i < MAX_DAYS; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0,10);
+    const candidate = `/data/${encodeURIComponent(locationId)}/sensorData_${dateStr}.json`;
+    try {
+      const resp = await fetch(candidate, { cache: 'no-store' });
+      console.log('tried', candidate, 'status', resp.status);
+      if (!resp.ok) continue;
+      const partial = await resp.json();
+      if (Array.isArray(partial)) rowsAccum.push(...partial);
+    } catch (e) {
+      console.warn('failed fetching', candidate, e);
+    }
+  }
+  if (rowsAccum.length) {
+    console.log('loaded rows from sensorData files, count=', rowsAccum.length);
     return normalizeAndSortRows(rowsAccum);
   }
 
-  function normalizeAndSortRows(rows) {
-    if (!rows || !Array.isArray(rows)) return [];
-    const normalized = rows.map(r => {
-      const ts = r.Timestamp || r.timestamp || r.time || r.cachedAt || null;
-      return Object.assign({}, r, { __tsDate: parseTs(ts) });
-    }).filter(r=> r.__tsDate && !isNaN(r.__tsDate.getTime()));
+  console.log('loadCachedRowsForLocation: nothing found for', locationId);
+  return [];
+}
 
-    normalized.sort((a,b)=> a.__tsDate - b.__tsDate);
-    return normalized;
+    function normalizeAndSortRows(rows) {
+      if (!rows || !Array.isArray(rows)) return [];
+      const normalized = rows.map(r => {
+        const ts = r.Timestamp || r.timestamp || r.time || r.cachedAt || null;
+        return Object.assign({}, r, { __tsDate: parseTs(ts) });
+      }).filter(r=> r.__tsDate && !isNaN(r.__tsDate.getTime()));
+  
+      normalized.sort((a,b)=> a.__tsDate - b.__tsDate);
+      return normalized;
+    }
+
+
+    function NumberOrNull(x) {
+      if (x === null || x === undefined) return null;
+      // if object (GViz cell.v could be a Date object), handle gracefully
+      if (typeof x === 'object') {
+        // Date-like
+        if (x instanceof Date && !isNaN(x.getTime())) return x.getTime(); // caller may expect number, but this case unlikely for measurement
+        // otherwise string conversion
+        x = String(x);
+      }
+      const s = String(x).trim();
+      if (!s) return null;
+      // common non-measure markers
+      const sLower = s.toLowerCase();
+      if (['tidak mengukur', 'tidak_mengukur', 'na', 'n/a', 'n a', 'not measured', '-', '--', 'null'].includes(sLower)) return null;
+      // if string looks numeric after removing commas
+      const n = Number(s.replace(/,/g, ''));
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function fmtLabelFromRow(row) {
+      // prefer existing timestamp-like keys; format to HH:MM:SS or fallback short slice
+      const raw = (row.Timestamp || row.timestamp || row.time || row.cachedAt || row.__tsDate || '');
+      if (!raw) return '';
+      try {
+        const d = (raw instanceof Date) ? raw : new Date(raw);
+        if (!isNaN(d.getTime())) {
+          return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+        }
+      } catch(e){}
+      const s = String(raw);
+      return s.length > 10 ? s.slice(-8) : s;
+    }
+
+    // debug helper: show keys of a row and normalized versions
+    function debugRowKeys(row, label = 'row') {
+    if (!row) { console.log('debugRowKeys: no row'); return; }
+    console.groupCollapsed(`debugRowKeys: ${label}`);
+    Object.keys(row).forEach(k => {
+      try {
+        console.log('key:', JSON.stringify(k), '=> normalized:', normalizeKey(k), ' value:', row[k]);
+      } catch(e){ console.log('key error', k, e); }
+    });
+    console.groupEnd();
   }
 
-  function fillChartsFromRows(rows) {
-    if (!Array.isArray(rows) || rows.length === 0) return;
-    const last = rows.slice(-7);
-    // map to labels and series arrays
-    const labels = last.map(r => (r.Timestamp || r.timestamp || r.time || r.cachedAt));
-    // helper to safe-get normalized key
-    const nk = k => String(k||'').trim().toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
-    // build arrays
-    const waterTemp = last.map(r => {
-      const v = r['Water Temp (C)'] ?? r['water_temp'] ?? r['water temp'] ?? r['WaterTemp'] ?? null;
-      return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
-    });
-    const airTemp = last.map(r => {
-      const v = r['Temp udara'] ?? r['Temp udara'] ?? r['temp udara'] ?? r['Air Temp'] ?? r['air_temp'] ?? null;
-      return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
-    });
-    const humidity = last.map(_=> null); // if no humidity sensor, placeholder
-
-    // chart1 datasets: [waterTemp, humidity, airTemp]
-    if (window.chart1) {
-      window.chart1.data.labels = labels;
-      if (window.chart1.data.datasets[0]) window.chart1.data.datasets[0].data = waterTemp;
-      if (window.chart1.data.datasets[1]) window.chart1.data.datasets[1].data = humidity;
-      if (window.chart1.data.datasets[2]) window.chart1.data.datasets[2].data = airTemp;
-      window.chart1.update();
+  // Safe setter: make sure dataset indices exist before writing
+  function safeSetChartData(chart, labels, arrs) {
+    if (!chart || !chart.data) return;
+    try {
+      chart.data.labels = Array.isArray(labels) ? labels.slice() : [];
+      arrs.forEach((arr, idx) => {
+        if (!chart.data.datasets[idx]) return;
+        chart.data.datasets[idx].data = Array.isArray(arr) ? arr.slice() : [];
+      });
+      chart.update();
+    } catch (e) {
+      console.warn('safeSetChartData failed', e);
     }
+  }
 
-    // chart2: TSS & pH
-    const tss = last.map(r => {
-      const v = r['TSS (V)'] ?? r['tss'] ?? null;
-      return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
+  function rowHasAnyNumeric(row, candidates) {
+    if (!row || !Array.isArray(candidates)) return false;
+    for (const k of candidates) {
+      // allow both raw header name and normalized lookup
+      const v = row[k] !== undefined ? row[k] : row[ normalizeKey(k) ];
+      if (NumberOrNull(v) !== null) return true;
+    }
+    return false;
+  }
+
+// fill charts: chart1 history (7), chart2 & chart3 show up-to MAX_POINTS recent numeric rows (search within LOOKBACK rows)
+// Unified function: prefer GF.prepareChartArraysFromRows if available (uses canonical KEY mapping)
+// Replace existing fillChartsFromRows with this improved version
+function fillChartsFromRows(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    console.log('fillChartsFromRows: no rows provided');
+    return;
+  }
+
+  // ---------- chart1 (historical, last 7) ----------
+  const last7 = rows.slice(-7);
+  const labels1 = last7.map(r => (r.Timestamp || r.timestamp || r.time || r.cachedAt) ?? '');
+  const airTempArr = last7.map(r => NumberOrNull(r['Air Temp (C)'] ?? r['air_temp'] ?? r['Temp udara'] ?? r['temperature'] ?? r['AirTemp']));
+  const humidityArr = last7.map(r => NumberOrNull(r['Air Humidity (%)'] ?? r['Humidity'] ?? r['humidity']));
+
+  if (window.chart1) {
+    window.chart1.data.labels = labels1;
+    if (window.chart1.data.datasets[0]) window.chart1.data.datasets[0].data = humidityArr;
+    if (window.chart1.data.datasets[1]) window.chart1.data.datasets[1].data = airTempArr;
+    try { window.chart1.update(); } catch(e){ console.warn('chart1 update failed', e); }
+  }
+
+  // ---------- chart2 & chart3: collect recent numeric rows only ----------
+  const MAX_POINTS = 5;   // show up to 5 measured rows
+  const LOOKBACK = 40;    // scan newest up to this many rows to find measured ones (increase if necessary)
+
+  // candidate keys (raw header variants)
+  const chart2Keys = ['Water Temp (C)', 'water_temp', 'water temp', 'WaterTemp', 'TSS (V)', 'tss', 'pH', 'ph'];
+  const chart3Keys = ['DO (ug/L)', 'do', 'EC (ms/cm)', 'ec', 'TDS (ppm)', 'tds'];
+
+  // helper: normalized key string
+  function nk(s){ return String(s||'').trim().toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,''); }
+
+  // robust field lookup: try exact header name, then normalized-match across row keys
+  function lookupField(row, candidates) {
+    if (!row) return null;
+    for (const c of candidates) {
+      if (row[c] !== undefined) return row[c];
+    }
+    // normalized fallback
+    const normToFind = candidates.map(c=>nk(c));
+    for (const rk of Object.keys(row)) {
+      const rkn = nk(rk);
+      if (normToFind.includes(rkn)) return row[rk];
+    }
+    return null;
+  }
+
+  // returns true if ANY of the candidate fields in this row is numeric per NumberOrNull
+  function rowHasAnyNumericFor(row, candidates) {
+    for (const c of candidates) {
+      const v = lookupField(row, [c]);
+      if (NumberOrNull(v) !== null) return true;
+    }
+    // also check normalized candidates list (combined)
+    for (const c of candidates) {
+      const v = lookupField(row, candidates);
+      if (NumberOrNull(v) !== null) return true;
+    }
+    return false;
+  }
+
+  // collect recent rows that contain measurement(s)
+  function collectRecentNumericRows(candidates) {
+    const found = [];
+    let checked = 0;
+    for (let i = rows.length - 1; i >= 0 && checked < LOOKBACK; i--, checked++) {
+      const row = rows[i];
+      if (rowHasAnyNumericFor(row, candidates)) {
+        found.push(row);
+        if (found.length >= MAX_POINTS) break;
+      }
+    }
+    return found.reverse(); // oldest -> newest
+  }
+
+  // Build arrays for a chart, then FILTER OUT indices where ALL series are null (defensive)
+  function buildAndFilterSeries(chosenRows, seriesDefs) {
+    // seriesDefs = [{nameCandidates: [...keys...]}, ...]
+    const labels = chosenRows.map(r => {
+      if (r.Timestamp || r.timestamp || r.time || r.cachedAt) return (r.Timestamp || r.timestamp || r.time || r.cachedAt);
+      // fallback to formatted label if __tsDate exists
+      if (r.__tsDate) {
+        try {
+          const d = new Date(r.__tsDate);
+          return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+        } catch(e) { /* ignore */ }
+      }
+      return '';
     });
-    const ph = last.map(r => {
-      const v = r['pH'] ?? r['ph'] ?? null;
-      return v === null || v === '' ? null : Number(String(v).replace(/,/g,''));
-    });
+
+    const arrays = seriesDefs.map(sd => chosenRows.map(r => NumberOrNull(lookupField(r, sd.nameCandidates))));
+    // filter by mask: keep indices where at least one array value != null
+    const mask = labels.map((_, idx) => arrays.some(arr => arr[idx] !== null));
+    const filteredLabels = [];
+    const filteredArrays = arrays.map(()=>[]);
+    for (let i = 0; i < labels.length; i++) {
+      if (!mask[i]) continue; // drop this timestamp where nothing measured
+      filteredLabels.push(labels[i]);
+      for (let a = 0; a < arrays.length; a++) filteredArrays[a].push(arrays[a][i]);
+    }
+    return { labels: filteredLabels, arrays: filteredArrays, rawCount: labels.length, keptCount: filteredLabels.length };
+  }
+
+  // CHART2: Water Temp / TSS / pH
+  const recentChart2 = collectRecentNumericRows(chart2Keys);
+  if (recentChart2.length > 0) {
+    const defs2 = [
+      { nameCandidates: ['Water Temp (C)', 'water_temp', 'water temp', 'WaterTemp'] },
+      { nameCandidates: ['TSS (V)', 'tss'] },
+      { nameCandidates: ['pH', 'ph'] }
+    ];
+    const { labels: labels2, arrays: [wt, tss, ph], rawCount, keptCount } = buildAndFilterSeries(recentChart2, defs2);
+    console.log(`chart2: found ${rawCount} candidate rows, kept ${keptCount} after filtering empty timestamps`, { wt, tss, ph });
+
     if (window.chart2) {
-      window.chart2.data.labels = labels;
-      if (window.chart2.data.datasets[0]) window.chart2.data.datasets[0].data = tss;
-      if (window.chart2.data.datasets[1]) window.chart2.data.datasets[1].data = ph;
-      window.chart2.update();
-    }
+      window.chart2.data.labels = labels2.map(s => {
+        try {
+          const d = parseTs(s);
+          return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+        } catch(e){
+          return s;
+        }
+      });
+      if (window.chart2.data.datasets[0]) window.chart2.data.datasets[0].data = wt;
+      if (window.chart2.data.datasets[1]) window.chart2.data.datasets[1].data = tss;
+      if (window.chart2.data.datasets[2]) window.chart2.data.datasets[2].data = ph;
 
-    // chart3: DO, EC, TDS
-    const doArr = last.map(r => NumberOrNull(r['DO (ug/L)'] ?? r['do']));
-    const ecArr = last.map(r => NumberOrNull(r['EC (ms/cm)'] ?? r['ec']));
-    const tdsArr = last.map(r => NumberOrNull(r['TDS (ppm)'] ?? r['tds']));
+      // optional: auto-suggest TSS axis max
+      const validTss = tss.filter(x => x !== null);
+      if (validTss.length) {
+        const maxT = Math.max(...validTss);
+        if (!isNaN(maxT) && window.chart2.options && window.chart2.options.scales && window.chart2.options.scales.yTSS) {
+          window.chart2.options.scales.yTSS.suggestedMax = Math.ceil(maxT * 1.15);
+        }
+      }
+
+      try { window.chart2.update(); } catch(e){ console.warn('chart2 update failed', e); }
+    }
+  } else {
+    console.log('chart2: no recent numeric measurements found -> chart left unchanged');
+  }
+
+  // CHART3: DO / EC / TDS
+  const recentChart3 = collectRecentNumericRows(chart3Keys);
+  if (recentChart3.length > 0) {
+    const defs3 = [
+      { nameCandidates: ['DO (ug/L)', 'do'] },
+      { nameCandidates: ['EC (ms/cm)', 'ec'] },
+      { nameCandidates: ['TDS (ppm)', 'tds'] }
+    ];
+    const { labels: labels3, arrays: [doArr, ecArr, tdsArr], rawCount, keptCount } = buildAndFilterSeries(recentChart3, defs3);
+    console.log(`chart3: found ${rawCount} candidate rows, kept ${keptCount} after filtering empty timestamps`, { doArr, ecArr, tdsArr });
+
     if (window.chart3) {
-      window.chart3.data.labels = labels;
+      window.chart3.data.labels = labels3.map(s => {
+        try {
+          const d = parseTs(s);
+          return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+        } catch(e){
+          return s;
+        }
+      });
       if (window.chart3.data.datasets[0]) window.chart3.data.datasets[0].data = doArr;
       if (window.chart3.data.datasets[1]) window.chart3.data.datasets[1].data = ecArr;
       if (window.chart3.data.datasets[2]) window.chart3.data.datasets[2].data = tdsArr;
-      window.chart3.update();
-    }
-  }
 
-  function NumberOrNull(x) {
-    if (x === null || x === undefined || x === '') return null;
-    const n = Number(String(x).replace(/,/g,''));
-    return Number.isNaN(n) ? null : n;
-  }
-
-  // Usage: after charts created
-  (async () => {
-    const params = new URLSearchParams(window.location.search);
-    const locationId = params.get('location') || window.CLIMBOX_CONFIG && window.CLIMBOX_CONFIG.LOCATION_ID;
-    if (!locationId) return;
-    const rows = await loadCachedRowsForLocation(locationId, { days: 14 }); // lookback 14 days then take last 7 points
-    fillChartsFromRows(rows);
-  })();   
-    
-  window.CLIMBOX_CONFIG = {
-      LOCATION_ID: locationId || 'Climbox1',
-      POLL_SECONDS: 30,
-      MQTT_WS: 'wss://test.mosquitto.org:8081/mqtt',
-      MQTT_USERNAME: '',
-      MQTT_PASSWORD: '',
-      MQTT_TOPIC_BASE: 'climbox',
-      MQTT_AUTO_DISABLE_POLL: true
-  };
-    
-      // Data lokasi simulasi
-      const locations = [
-            {
-                id: ' ',
-                name: ' ',
-                coord: [],
-                country: ' '
-            }
-        ];
-
-    // console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
-
-        // Fungsi untuk memuat data lokasi dari JSON
-        async function loadLocations() {
-    try {
-      const response = await fetch('../assets/data/locations.json');
-      const data = await response.json();
-      const foundLocation = data.find(location => location.locationId === locationId);
-      if (foundLocation) {
-        document.getElementById('location-name-display').textContent = foundLocation.name;
-        initMap(foundLocation); // kirim object, bukan cuma coord
-      } else {
-        console.warn('Location not found:', locationId);
+      // optional: auto-suggest right-axis for EC/TDS
+      const validEc = ecArr.filter(x => x !== null);
+      const validTds = tdsArr.filter(x => x !== null);
+      const combined = validEc.concat(validTds);
+      if (combined.length && window.chart3.options && window.chart3.options.scales && window.chart3.options.scales.yEc) {
+        const mx = Math.max(...combined);
+        window.chart3.options.scales.yEc.suggestedMax = Math.ceil(mx * 1.15);
       }
-    } catch (error) {
-      console.error('Error loading locations:', error);
+
+      try { window.chart3.update(); } catch(e){ console.warn('chart3 update failed', e); }
     }
-  }
+  } else {
+    console.log('chart3: no recent numeric measurements found -> chart left unchanged');
+ }
+}
 
-  // Fungsi untuk menginisialisasi peta
-  function initMap(loc) {
-    const map = L.map('map').setView(loc.coord, 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    const mk = L.marker(loc.coord).addTo(map);
-    mk.bindPopup(`
-      <strong>${loc.name}</strong><br>
-      <small>${loc.country}</small><br>
-      <small>Lat: ${loc.coord[0]}, Lon: ${loc.coord[1]}</small>
-    `);
-  }
-
-  function renderLocationList(locations) {
-    const el = document.getElementById('location-list');
-    if (!el) return;
-    el.innerHTML = '';
-    locations.forEach(loc => {
-      const li = document.createElement('li');
-      li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
-      li.textContent = loc.name;
-      el.appendChild(li);
-    });
-  }
-
-  loadLocations();
-  </script>
-
+    window.CLIMBOX_CONFIG = {
+        LOCATION_ID: locationId || 'Climbox1',
+        POLL_SECONDS: 30,
+        MQTT_WS: 'wss://test.mosquitto.org:8081/mqtt',
+        MQTT_USERNAME: '',
+        MQTT_PASSWORD: '',
+        MQTT_TOPIC_BASE: 'climbox',
+        MQTT_AUTO_DISABLE_POLL: true
+    };
+      
+        // Data lokasi simulasi
+        const locations = [
+              {
+                  id: ' ',
+                  name: ' ',
+                  coord: [],
+                  country: ' '
+              }
+          ];
+  
+      // console.log('MQTT_WS:', window.CLIMBOX_CONFIG.MQTT_WS);
+  
+          // Fungsi untuk memuat data lokasi dari JSON
+          async function loadLocations() {
+      try {
+        const response = await fetch('../assets/data/locations.json');
+        const data = await response.json();
+        const foundLocation = data.find(location => location.locationId === locationId);
+        if (foundLocation) {
+          document.getElementById('location-name-display').textContent = foundLocation.name;
+          initMap(foundLocation); // kirim object, bukan cuma coord
+        } else {
+          console.warn('Location not found:', locationId);
+        }
+      } catch (error) {
+        console.error('Error loading locations:', error);
+      }
+    }
+  
+    // Fungsi untuk menginisialisasi peta
+    function initMap(loc) {
+      const map = L.map('map').setView(loc.coord, 6);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+  
+      const mk = L.marker(loc.coord).addTo(map);
+      mk.bindPopup(`
+        <strong>${loc.name}</strong><br>
+        <small>${loc.country}</small><br>
+        <small>Lat: ${loc.coord[0]}, Lon: ${loc.coord[1]}</small>
+      `);
+    }
+  
+    function renderLocationList(locations) {
+      const el = document.getElementById('location-list');
+      if (!el) return;
+      el.innerHTML = '';
+      locations.forEach(loc => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
+        li.textContent = loc.name;
+        el.appendChild(li);
+      });
+    }
+  
+    loadLocations();
+    </script>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
   <script src="../assets/js/graph-fetch.js"></script>
     
   <!-- Github buttons -->
