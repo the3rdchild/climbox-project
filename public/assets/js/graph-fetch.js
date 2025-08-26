@@ -427,7 +427,7 @@ function setArrowFromWaterTempInCard(cardEl, waterTempValue) {
       const rainfall = values[ normalizeKey('rainfall') ];
       const dist = values[ normalizeKey('distance') ];
       setSafeText(big, fmtNumber(asNumberOrNull(rainfall), ' mm'));
-      setSafeText(alt, fmtNumber(asNumberOrNull(dist), ' mm'));
+      setSafeText(alt, fmtNumber(asNumberOrNull(dist), ' CM'));
     }
 
     // KUALITAS FISIKA
