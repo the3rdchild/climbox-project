@@ -467,61 +467,41 @@ function debugRowKeys(row) {
     return null;
   }
 
-  // Try multiple places to get rows for a location (loc.latest/rows/data -> cache -> fetch via mapping + GF)
-  async function getLatestRowsForLocation(loc) {
-    if (!loc) return [];
-    if (Array.isArray(loc.latest)) return loc.latest;
-    if (Array.isArray(loc.rows)) return loc.rows;
-    if (Array.isArray(loc.data)) return loc.data;
+// replace existing getLatestRowsForLocation with this
+async function getLatestRowsForLocation(loc) {
+  if (!loc) return [];
+  if (Array.isArray(loc.latest)) return loc.latest;
+  if (Array.isArray(loc.rows)) return loc.rows;
+  if (Array.isArray(loc.data)) return loc.data;
 
-    // try reading cached localStorage (if graph-fetch wrote it)
-    try {
-      if (GF && GF.cfg && GF.cfg.CACHE_PREFIX && (loc.locationId || loc.id)) {
-        const prefix = GF.cfg.CACHE_PREFIX;
-        const key = `${prefix}_sensor_${loc.locationId || loc.id}`;
-        const raw = localStorage.getItem(key);
-        if (raw) {
+  // try reading cached localStorage (if graph-fetch wrote it)
+  try {
+    if (GF && GF.cfg && GF.cfg.CACHE_PREFIX && (loc.locationId || loc.id)) {
+      const prefix = GF.cfg.CACHE_PREFIX;
+      const key = `${prefix}_sensor_${loc.locationId || loc.id}`;
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
           const parsed = JSON.parse(raw);
           if (parsed && Array.isArray(parsed.raw)) return parsed.raw;
           if (parsed && Array.isArray(parsed.rows)) return parsed.rows;
-        }
+          if (parsed && parsed.grouped && parsed.grouped.raw && Array.isArray(parsed.grouped.raw)) return parsed.grouped.raw;
+        } catch (e) { /* ignore parse error */ }
       }
-    } catch(e){}
+    }
+  } catch(e){}
 
-    // try fetch from locations.json mapping using GF.fetchSheetViaGviz (if available)
-    try {
-      const locJsonPath = (GF && GF.cfg && GF.cfg.LOCATIONS_JSON) ? GF.cfg.LOCATIONS_JSON : '../assets/data/locations.json';
-      const r = await fetch(locJsonPath, {cache: 'no-store'});
-      if (r.ok) {
-        const mappings = await r.json();
-        const candidate = (mappings || []).find(m => {
-          const id = (m.locationId || m.id || '').toString();
-          const name = (m.name || m.label || '').toString().toLowerCase();
-          return (loc.locationId && id === String(loc.locationId)) ||
-                 (loc.id && id === String(loc.id)) ||
-                 (loc.name && name === String(loc.name).toLowerCase());
-        });
-        if (candidate && GF && typeof GF.fetchSheetViaGviz === 'function') {
-          const sheetId = candidate.sheetId || candidate.sheetid || candidate.sheet;
-          if (sheetId) {
-            let sheetName = candidate.sheetName || candidate.sheetname || candidate.sheet;
-            if (!sheetName) sheetName = resolveSheetName(candidate);
-            if (sheetName.includes('{date}')) sheetName = sheetName.replace('{date}', todayDateString());
-            const fetched = await GF.fetchSheetViaGviz(sheetId, sheetName);
-            if (Array.isArray(fetched) && fetched.length) return fetched;
-          }
-        }
-      }
-    } catch(e){}
-    // final fallback: try our /data JSON method
-    try {
-      if (loc.locationId) {
-        const fallback = await loadCachedRowsForLocation(loc.locationId, 14);
-        if (fallback && fallback.length) return fallback;
-      }
-    } catch(e){}
-    return [];
-  }
+  // final fallback: try our /data JSON method (same as graph.html fallback)
+  try {
+    if (loc.locationId) {
+      const fallback = await loadCachedRowsForLocation(loc.locationId, 14);
+      if (fallback && fallback.length) return fallback;
+    }
+  } catch(e){}
+
+  return [];
+}
+
 
   // Renders popup card HTML using GF.cfg.KEYS if available
   function renderPopupCardHTMLStringFromLocAndRow(loc, latestRow) {
@@ -539,9 +519,55 @@ function debugRowKeys(row) {
     timestamp:  (GF && GF.cfg && GF.cfg.KEYS && GF.cfg.KEYS.timestamp)  ? GF.cfg.KEYS.timestamp  : defaultKeys.timestamp
   };
 
-  // read raw values using robust pickFieldFromRow
-  const wtRaw = latestRow ? pickFieldFromRow(latestRow, keys.water_temp) : null;
-  const ecRaw = latestRow ? pickFieldFromRow(latestRow, keys.ec) : null;
+  // prefer latest MQTT payload values for 'water_temp' and 'ec' if available,
+  // otherwise fall back to the provided latestRow (GViz / cached).
+  const mqttLatest = (window.MAP_LIVE_LATEST && window.MAP_LIVE_LATEST[loc.locationId]) ? window.MAP_LIVE_LATEST[loc.locationId] : null;
+
+  const wtFromMqtt = mqttLatest ? pickFieldFromRow(mqttLatest, keys.water_temp) : null;
+  const ecFromMqtt = mqttLatest ? pickFieldFromRow(mqttLatest, keys.ec) : null;
+
+// Prefer live MQTT payload (if any), then graph-fetch localStorage cache, then latestRow (GViz/fallback)
+let wtRaw = null, ecRaw = null;
+
+// 1) MQTT latest payload (map-live.js stores per-location object)
+try {
+  const mqttLatest = (window.MAP_LIVE_LATEST && window.MAP_LIVE_LATEST[loc.locationId]) ? window.MAP_LIVE_LATEST[loc.locationId] : null;
+  if (mqttLatest) {
+    wtRaw = pickFieldFromRow(mqttLatest, keys.water_temp);
+    ecRaw = pickFieldFromRow(mqttLatest, keys.ec);
+  }
+} catch(e){ /* ignore */ }
+
+// 2) graph-fetch localStorage cache (processRowsAndRenderCards writes grouped -> groups.kualitas_fisika)
+if ((wtRaw === null || wtRaw === undefined || wtRaw === '') ||
+    (ecRaw === null || ecRaw === undefined || ecRaw === '')) {
+  try {
+    if (GF && GF.cfg && GF.cfg.CACHE_PREFIX && (loc.locationId || loc.id)) {
+      const prefix = GF.cfg.CACHE_PREFIX;
+      const key = `${prefix}_sensor_${loc.locationId || loc.id}`;
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const grouped = parsed && parsed.grouped ? parsed.grouped : null;
+        const groups = grouped && grouped.groups ? grouped.groups : null;
+        const kf = groups && (groups.kualitas_fisika || groups['kualitas_fisika']) ? (groups.kualitas_fisika || groups['kualitas_fisika']) : null;
+        if (kf) {
+          if ((wtRaw === null || wtRaw === undefined || wtRaw === '') && kf.water_temp !== undefined) wtRaw = kf.water_temp;
+          if ((ecRaw === null || ecRaw === undefined || ecRaw === '') && kf.ec !== undefined) ecRaw = kf.ec;
+        }
+      }
+    }
+  } catch(e){}
+}
+
+// 3) fallback to provided latestRow (existing behavior)
+if ((wtRaw === null || wtRaw === undefined || wtRaw === '') && latestRow) {
+  wtRaw = pickFieldFromRow(latestRow, keys.water_temp);
+}
+if ((ecRaw === null || ecRaw === undefined || ecRaw === '') && latestRow) {
+  ecRaw = pickFieldFromRow(latestRow, keys.ec);
+}
+
 
   // If water temp not found, print helpful debug (you can comment out later)
   if (wtRaw === null) {

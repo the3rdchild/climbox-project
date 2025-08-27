@@ -258,10 +258,15 @@
           if (!locId) return;
           updateListLive(locId, payload);
 
+          // store last MQTT payload per location so map popup can read latest live fields
+          window.MAP_LIVE_LATEST = window.MAP_LIVE_LATEST || {};
+          try { window.MAP_LIVE_LATEST[locId] = payload; } catch(e) { /* defensive */ }
+
           // If payload contains rows (or data array), and chart1 exists, update chart
           const rows = Array.isArray(payload.rows) ? payload.rows
                      : Array.isArray(payload.data) ? payload.data
                      : (Array.isArray(payload) ? payload : null);
+
 
           // Only update chart if the message is for the currently-selected location (UX)
           const selected = getSelectedLocationId();
