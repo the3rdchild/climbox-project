@@ -1,4 +1,3 @@
-// /home/user/climbox-project/public/assets/js/map-locations.js
 (function(){
     // default config: override before loading script with window.CLIMBOX_MAP_CONFIG
     const cfg = Object.assign({
