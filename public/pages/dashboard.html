@@ -13,6 +13,107 @@
   <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.2.0" rel="stylesheet" />
+  <style>
+    .banner-container {
+        width: 98%;
+        min-height: 98vh; /* Memastikan container memiliki tinggi minimal 100% dari viewport */
+        background-color: #ffffff;
+        display: flex; /* Menggunakan flexbox untuk memusatkan konten */
+        align-items: center; /* Memusatkan secara vertikal */
+        justify-content: center; /* Memusatkan secara horizontal */
+    }
+    /* Mengubah ukuran gambar banner */
+    .banner-image {
+        max-width: 100%;
+        max-height: 100vh;
+        display: block;
+        object-fit: contain; /* Memastikan gambar pas di dalam container tanpa terdistorsi */
+    }
+    /* Hapus padding dari container Bootstrap jika ingin 100% full */
+    .py-4 {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    /* Container & grid */
+    .db-cards-container {
+    width: 100%;
+    margin-top: 2.25rem;
+    margin-bottom: 0; /* Ubah ini */
+    }
+
+    .db-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px; /* Jarak yang Anda inginkan */
+    align-items: stretch;
+    }
+
+    @media (min-width: 992px) {
+    .db-cards-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .db-card {
+      position: relative;
+      overflow: visible;
+      border-radius: 0px;
+      min-height: 420px;
+      background: transparent;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .db-card:hover { transform: translateY(-6px); }
+
+    .db-card-hero {
+      height: 75%;
+      width: 100%;
+      border-radius: 4px !important;
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 6px 20px rgba(12,20,30,0.08);
+      filter: brightness(0.92);
+      display:block;
+    }
+  
+    .db-card-body {
+      position: relative;
+      background: #fff;
+      margin-top: -110px;               /* overlap amount */
+      margin-left: 12px;
+      margin-right: 12px;
+      padding: 22px;
+      border-radius: 4px;
+      box-shadow: 0 18px 30px rgba(8,12,20,0.06);
+      min-height: 160px;
+      z-index: 20;                       /* ensure above hero */
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      pointer-events: auto;
+    }
+  
+    /* Title / summary */
+    .db-card-title {
+      margin: 0 0 0.6rem 0;
+      font-weight: 800;
+      font-size: 1.08rem;
+      line-height: 1.12;
+      color: #081828;
+      letter-spacing: -0.01em;
+    }
+    .db-card-text {
+      margin: 0;
+      color: #51565b;
+      font-size: 0.96rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 575px) {
+      .db-card { min-height: 360px; }
+      .db-card-hero { height: 62%; border-radius: 4px; }
+      .db-card-body { margin-top: -80px; margin-left: 10px; margin-right: 10px; padding: 16px; }
+      .db-card-title { font-size: 1rem; }
+      .db-cards-grid { gap: 10px; }
+    }
+  </style>
 </head>
 <body class="g-sidenav-show  bg-gray-100">
   <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-radius-lg fixed-start ms-2  bg-white my-2" id="sidenav-main">
@@ -135,30 +236,25 @@
         </div>
       </div>
     </header>
-    <div class="container my-5">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-12 col-lg-12">
-          <div class="row align-items-center mb-4">
-            <div class="col-md-6">
-              <img src="../assets/dashboard/dashboard1.png" alt="Coral Sea" class="img-fluid rounded shadow">
-            </div>
-            <div class="col-md-6" style="margin-top: 20px">
-              <h3>Cara Penggunaan</h3>
-              <p>
-                Akses Peta untuk menampilkan lokasi sensor, kemudian pilih grafik yang tersedia.  
-                Untuk informasi lebih mendalam, gunakan fitur Pilih Lokasi Sensor terlebih dahulu sebelum melihat grafik per lokasi melalui daftar lokasi sensor yang tersedia.  
-                Perbesar tampilan dengan fungsi zoom dan tinjau daftar lokasi sensor yang tersedia di bawah grafik.
-              </p>
-            </div>
+
+    <div class="db-cards-container container">
+      <div class="db-cards-grid">
+        <article class="db-card" role="article" aria-label="Cara Penggunaan">
+          <div class="db-card-hero" style="background-image: url('../assets/dashboard/dashboard1.png');" aria-hidden="true"></div>
+          <div class="db-card-body">
+            <h3 class="db-card-title">Cara Penggunaan</h3>
+            <p class="db-card-text">
+              Akses Peta untuk menampilkan lokasi sensor, kemudian pilih grafik yang tersedia.  
+              Untuk informasi lebih mendalam, gunakan fitur Pilih Lokasi Sensor terlebih dahulu sebelum melihat grafik per lokasi melalui daftar lokasi sensor yang tersedia.  
+              Perbesar tampilan dengan fungsi zoom dan tinjau daftar lokasi sensor yang tersedia di bawah grafik.
+          </p>
           </div>
-          <div class="row align-items-center mb-5 flex-md-row-reverse">
-            <div class="col-md-6">
-              <img src="../assets/dashboard/coral.jpg" alt="Coral" class="img-fluid rounded shadow">
-            </div>
-            <div class="col-md-6" style="margin-top: 20px;">
-              <h3>Sensor yang Digunakan</h3>
-              <p>
+        </article>
+        <article class="db-card" role="article" aria-label="Sensor yang Digunakan">
+          <div class="db-card-hero" style="background-image: url('../assets/dashboard/coral.jpg');" aria-hidden="true"></div>
+          <div class="db-card-body">
+            <h3 class="db-card-title">Sensor yang Digunakan</h3>
+            <p class="db-card-text">
                 🌡 Sensor Suhu Air (Water Temp)<br>
                 ⚡ Sensor Konduktivitas Listrik / Salinitas (EC / Salinity)<br>
                 📏 Sensor Ketinggian Air (Distance)<br>
@@ -172,34 +268,32 @@
                 🌡 Sensor Suhu Permukaan Laut (SST)<br>
                 📡 GPS Buoy / Data Satelit<br>
               </p>
-            </div>            
           </div>
-          <div class="row align-items-center mb-5">
-            <div class="col-md-6">
-              <img src="../assets/dashboard/ocean.jpg" alt="Ocean" class="img-fluid rounded shadow">
-            </div>
-            <div class="col-md-6" style="margin-top: 20px;">
-              <h3>Tujuan & Manfaat</h3>
-              <p>
-                Sistem ini dirancang untuk memantau kondisi ekosistem laut secara berkelanjutan, 
-                memberikan peringatan dini terhadap potensi risiko lingkungan, serta menyediakan data yang akurat 
-                untuk mendukung penelitian ilmiah. Selain itu, sistem ini juga mendorong transparansi publik 
-                sehingga informasi mengenai kondisi laut dapat diakses secara terbuka oleh semua pihak yang berkepentingan.
-              </p>
+        </article>
+        <article class="db-card" role="article" aria-label="Tujuan & Manfaat">
+          <div class="db-card-hero" style="background-image: url('../assets/dashboard/ocean.jpg');" aria-hidden="true";></div>
+          <div class="db-card-body">
+            <h3 class="db-card-title">Tujuan & Manfaat</h3>
+            <p class="db-card-text">
+              Sistem ini dirancang untuk memantau kondisi ekosistem laut secara berkelanjutan, 
+              memberikan peringatan dini terhadap potensi risiko lingkungan, serta menyediakan data yang akurat 
+              untuk mendukung penelitian ilmiah. Selain itu, sistem ini juga mendorong transparansi publik 
+              sehingga informasi mengenai kondisi laut dapat diakses secara terbuka oleh semua pihak yang berkepentingan.
+          </p>
           </div>
-        </div>
+        </article>
       </div>
     </div>
-    </div>
+
   </div>
 </div>
-<div class="py-4" style="background-color: #ffffff;">
+<div class="banner-container">
   <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <img src="../assets/dashboard/banner.png" alt="Sponsor Banner" class="img-fluid rounded w-100">
+      <div class="row">
+          <div class="col-12">
+              <img src="../assets/dashboard/banner.png" alt="Sponsor Banner" class="img-fluid rounded banner-image">
+          </div>
       </div>
-    </div>
   </div>
 </div>
   <footer class="footer py-4  ">
@@ -267,5 +361,67 @@
   <script type="module" src="/services/firestore-and-profile.js"></script>
   <script type="module" src="/services/auth-forms-and-profile-ui.js"></script>
   <script src="../assets/js/notifications.js"></script>
+  
+  <script>
+    (function () {
+        function remToPx(rem) {
+            const root = getComputedStyle(document.documentElement).fontSize;
+            return parseFloat(root || 16) * rem;
+        }
+
+        function updateCardsSpacing() {
+            const container = document.querySelector('.db-cards-container');
+            const bodies = Array.from(document.querySelectorAll('.db-card-body'));
+            if (!container || !bodies.length) return;
+
+            // Cek jika tampilan adalah ponsel (lebar layar kurang dari atau sama dengan 575px)
+            if (window.innerWidth <= 575) {
+                document.querySelectorAll('.db-card').forEach(card => {
+                    const hero = card.querySelector('.db-card-hero');
+                    const body = card.querySelector('.db-card-body');
+                    if (hero && body) {
+                        const heroHeight = hero.offsetHeight;
+                        const bodyHeight = body.offsetHeight;
+                        const bodyMarginTop = Math.abs(parseFloat(getComputedStyle(body).marginTop)); // Dapatkan nilai positif dari margin-top negatif
+                        const totalCardHeight = heroHeight + bodyHeight - bodyMarginTop;
+                        const requiredMargin = (bodyHeight - bodyMarginTop) - 100; // Tambah jarak 10px
+                        card.style.marginBottom = requiredMargin + 'px';
+                    }
+                });
+                // Hapus padding-bottom pada container untuk menghindari spasi ganda
+                container.style.paddingBottom = '';
+
+            } else {
+                const maxH = bodies.reduce((m, el) => Math.max(m, el.offsetHeight), 0);
+                const extraPx = Math.round(maxH - 100);
+                container.style.paddingBottom = extraPx + 'px';
+                document.querySelectorAll('.db-card').forEach(c => c.style.marginBottom = '');
+            }
+        }
+        function debounce(fn, wait) {
+            let t = null;
+            return function () {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, arguments), wait);
+            };
+        }
+
+        const onLoadOrResize = debounce(updateCardsSpacing, 120);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateCardsSpacing);
+        } else {
+            updateCardsSpacing();
+        }
+        window.addEventListener('resize', onLoadOrResize);
+        
+        try {
+            const grid = document.querySelector('.db-cards-grid');
+            if (grid && window.MutationObserver) {
+                const mo = new MutationObserver(debounce(updateCardsSpacing, 200));
+                mo.observe(grid, { childList: true, subtree: true, attributes: true, characterData: true });
+            }
+        } catch (e) { /* ignore */ }
+    })();
+</script>
 </body>
 </html>
