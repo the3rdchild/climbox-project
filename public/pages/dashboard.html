@@ -16,19 +16,31 @@
   <style>
     .banner-container {
         width: 98%;
-        min-height: 98vh; /* Memastikan container memiliki tinggi minimal 100% dari viewport */
         background-color: #ffffff;
         margin-top: -60px;
-        display: flex; /* Menggunakan flexbox untuk memusatkan konten */
-        align-items: center; /* Memusatkan secara vertikal */
-        justify-content: center; /* Memusatkan secara horizontal */
+        margin-bottom: 0px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        clip-path: inset(0px 0px 0px 0px); /* 100 0 100 0, buat cut image, tambah margin -100px */
     }
-    /* Mengubah ukuran gambar banner */
+
     .banner-image {
-        max-width: 100%;
-        max-height: 100vh;
         display: block;
-        object-fit: contain; /* Memastikan gambar pas di dalam container tanpa terdistorsi */
+        object-fit: contain;
+        clip-path: inset(0px 0px 0px 0px);
+    }
+
+    @media (max-width: 575px) {
+        .banner-container {
+            margin-top: 0px;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .banner-container {
+            margin-top: -75px;
+        }
     }
 
     /* Container & grid */
