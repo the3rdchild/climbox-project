@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClimBox API Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .control-group select,
+        .control-group input,
+        .control-group button {
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .control-group button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .control-group button:hover {
+            transform: translateY(-2px);
+        }
+
+        .control-group button:active {
+            transform: translateY(0);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            flex: none;
+        }
+
+        .results {
+            padding: 30px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .location-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .location-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .location-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .location-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .readings {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .reading-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .reading-timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .sensor-item {
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .sensor-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sensor-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 3px;
+        }
+
+        .json-viewer {
+            background: #263238;
+            color: #aed581;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .api-url {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            word-break: break-all;
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 ClimBox Sensor Data API Test</h1>
+            <p>Test dan visualisasi API data sensor ClimBox</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <select id="locationSelect">
+                    <option value="">Semua Lokasi</option>
+                    <option value="Climbox1">Climbox1</option>
+                    <option value="Climbox2">Climbox2</option>
+                    <option value="Climbox3">Climbox3</option>
+                </select>
+
+                <input type="number" id="limitInput" placeholder="Limit (kosongkan untuk semua)" min="1">
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="latestCheckbox">
+                    <label for="latestCheckbox">Hanya data terbaru</label>
+                </div>
+
+                <button onclick="fetchData()">📡 Fetch Data</button>
+            </div>
+
+            <div class="control-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="showJsonCheckbox">
+                    <label for="showJsonCheckbox">Tampilkan JSON Raw</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <p style="text-align: center; color: #999;">Klik "Fetch Data" untuk memulai</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin + '/pages/api-sensor-data.php';
+
+        function buildApiUrl() {
+            const location = document.getElementById('locationSelect').value;
+            const limit = document.getElementById('limitInput').value;
+            const latest = document.getElementById('latestCheckbox').checked;
+
+            const params = new URLSearchParams();
+            if (location) params.append('location', location);
+            if (limit) params.append('limit', limit);
+            if (latest) params.append('latest', 'true');
+
+            return API_BASE_URL + (params.toString() ? '?' + params.toString() : '');
+        }
+
+        function showLoading() {
+            document.getElementById('results').innerHTML = '<div class="loading">⏳ Loading data...</div>';
+        }
+
+        function showError(message) {
+            document.getElementById('results').innerHTML = `<div class="error">❌ Error: ${message}</div>`;
+        }
+
+        function formatSensorValue(value, unit = '') {
+            if (value === null || value === undefined) return '-';
+            if (typeof value === 'number') {
+                return value.toFixed(2) + (unit ? ' ' + unit : '');
+            }
+            return value + (unit ? ' ' + unit : '');
+        }
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp);
+            return date.toLocaleString('id-ID', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function renderSensorData(reading) {
+            const sensors = [
+                { label: 'Suhu Udara', key: 'suhu_udara', unit: '°C', category: 'meteorologi' },
+                { label: 'Kelembaban Udara', key: 'kelembaban_udara', unit: '%', category: 'meteorologi' },
+                { label: 'Arah Angin', key: 'arah_angin', unit: '', category: 'meteorologi' },
+                { label: 'Kecepatan Angin', key: 'kecepatan_angin', unit: 'km/h', category: 'meteorologi' },
+                { label: 'Intensitas Hujan', key: 'intensitas_hujan', unit: 'mm/h', category: 'presipitasi' },
+                { label: 'Jarak Permukaan Air', key: 'jarak_permukaan_air', unit: 'cm', category: 'presipitasi' },
+                { label: 'Suhu Air', key: 'suhu_air', unit: '°C', category: 'kualitas_fisika' },
+                { label: 'EC', key: 'ec', unit: 'mS/cm', category: 'kualitas_fisika' },
+                { label: 'TDS', key: 'tds', unit: 'ppm', category: 'kualitas_kimia' },
+                { label: 'pH', key: 'ph', unit: '', category: 'kualitas_kimia' },
+                { label: 'DO', key: 'do', unit: 'mg/L', category: 'kualitas_kimia' },
+                { label: 'Pompa', key: 'pompa', unit: '', category: 'kualitas_kimia' },
+                { label: 'TSS', key: 'tss', unit: 'mg/L', category: 'turbiditas' }
+            ];
+
+            let html = '';
+            sensors.forEach(sensor => {
+                if (reading.hasOwnProperty(sensor.key)) {
+                    html += `
+                        <div class="sensor-item">
+                            <div class="sensor-label">${sensor.label}</div>
+                            <div class="sensor-value">${formatSensorValue(reading[sensor.key], sensor.unit)}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            return html;
+        }
+
+        function renderData(data) {
+            const showJson = document.getElementById('showJsonCheckbox').checked;
+            const apiUrl = buildApiUrl();
+
+            let html = `<div class="api-url"><strong>API URL:</strong> ${apiUrl}</div>`;
+
+            if (showJson) {
+                html += `<div class="json-viewer">${JSON.stringify(data, null, 2)}</div>`;
+                document.getElementById('results').innerHTML = html;
+                return;
+            }
+
+            if (!data.success || !data.data || data.data.length === 0) {
+                html += '<p style="text-align: center; color: #999;">Tidak ada data tersedia</p>';
+                document.getElementById('results').innerHTML = html;
+                return;
+            }
+
+            data.data.forEach(location => {
+                html += `
+                    <div class="location-card">
+                        <div class="location-header">
+                            <div>
+                                <div class="location-name">📍 ${location.location.name}</div>
+                                <div class="location-info">
+                                    ${location.location.country} •
+                                    Lat: ${location.location.coordinates.latitude.toFixed(4)},
+                                    Lon: ${location.location.coordinates.longitude.toFixed(4)}
+                                </div>
+                            </div>
+                            <div class="location-info">
+                                <strong>${location.total_readings}</strong> readings
+                            </div>
+                        </div>
+                        <div class="readings">
+                `;
+
+                location.readings.forEach(reading => {
+                    html += `
+                        <div class="reading-card">
+                            <div class="reading-timestamp">⏰ ${formatTimestamp(reading.timestamp)}</div>
+                            <div class="sensor-grid">
+                                ${renderSensorData(reading)}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('results').innerHTML = html;
+        }
+
+        async function fetchData() {
+            showLoading();
+
+            try {
+                const url = buildApiUrl();
+                console.log('Fetching:', url);
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                console.log('Response:', data);
+                renderData(data);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message);
+            }
+        }
+
+        // Auto-fetch on page load with latest data
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('latestCheckbox').checked = true;
+            fetchData();
+        });
+
+        // Allow Enter key to trigger fetch
+        document.getElementById('limitInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') fetchData();
+        });
+    </script>
+</body>
+</html>
