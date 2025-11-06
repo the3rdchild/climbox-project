@@ -3,17 +3,20 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// To use this script, you need to install an MQTT client library for PHP.
-// We recommend using `php-mqtt/client`. You can install it using Composer:
-// composer require php-mqtt/client
-require(__DIR__ . '/../../../vendor/autoload.php');
+$vendor_autoload = __DIR__ . '/../../../vendor/autoload.php';
+if (!file_exists($vendor_autoload)) {
+    header("HTTP/1.1 500 Internal Server Error");
+    echo json_encode(['error' => 'MQTT client library not found. Please run "composer require php-mqtt/client" in your project root.']);
+    exit;
+}
+require($vendor_autoload);
 
 use \PhpMqtt\Client\MqttClient;
 use \PhpMqtt\Client\ConnectionSettings;
 
 // MQTT Broker settings from your config.json
 $server   = 'test.mosquitto.org';
-$port     = 8081; // WebSocket port
+$port     = 8081; // Correct WebSocket port
 $clientId = 'php-mqtt-client-' . uniqid();
 $username = ''; // your MQTT username
 $password = ''; // your MQTT password
