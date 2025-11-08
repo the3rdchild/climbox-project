@@ -160,6 +160,6 @@
         "protocol": "wss",
         "path": "/mqtt",
         "reconnectPeriod": 2000,
-        "topic": "climbox/climbox-1/#"
+        "topic": "climbox/#"
     }
 }
