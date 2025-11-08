@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Climbox-Api</title>
+    <title>Real-time Sensor Data</title>
     <style>
         table {
             width: 100%;
@@ -13,13 +13,10 @@
             border-bottom: 1px solid #ddd;
         }
     </style>
-    <!-- 1. Add MQTT client library -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
-
     <h1>Climbox-Api</h1>
-    <!-- <p id="status">Connecting to MQTT broker...</p> -->
     <table id="sensor-data-table">
         <thead>
             <tr>
@@ -31,75 +28,6 @@
         <tbody>
         </tbody>
     </table>
-
-    <script>
-        // 2. MQTT Connection Details from your image
-        const options = {
-            host: 'test.mosquitto.org',
-            port: 8081,
-            protocol: 'wss',
-            path: '/mqtt',
-            clientId: 'mqttx_' + Math.random().toString(16).substr(2, 8)
-        };
-
-        const client = mqtt.connect(`wss://${options.host}:${options.port}${options.path}`, options);
-
-        const statusElement = document.getElementById('status');
-
-        client.on('connect', function () {
-            // statusElement.textContent = 'Connected to MQTT broker! Subscribing to topic...';
-            console.log('Connected');
-            // 3. Subscribe to the topic
-            const topic = 'climbox/#'; // Using a wildcard to get all messages for climbox-1
-            client.subscribe(topic, function (err) {
-                if (!err) {
-                    // statusElement.textContent = `Successfully subscribed to ${topic}`;
-                    console.log(`Subscribed to ${topic}`);
-                }
-            });
-        });
-
-        client.on('message', function (topic, message) {
-            // 4. Handle incoming messages
-            try {
-                const data = JSON.parse(message.toString());
-                console.log('Received data:', data);
-
-                const tableBody = document.querySelector('#sensor-data-table tbody');
-                // Let's not clear the table to see a log of messages
-                // tableBody.innerHTML = ''; 
-
-                if (Array.isArray(data)) {
-                    data.forEach(row => appendRow(tableBody, row));
-                } else if (data && typeof data === 'object') {
-                    appendRow(tableBody, data);
-                } else {
-                    console.warn("Received data is not in a recognized format.");
-                }
-
-            } catch (error) {
-                console.error('Error processing message:', error, message.toString());
-            }
-        });
-
-        client.on('error', function (error) {
-            statusElement.textContent = `Connection Error: ${error.message}`;
-            console.error('Connection Error:', error);
-        });
-
-        function appendRow(tableBody, row) {
-            const timestamp = row.Timestamp || row.timestamp || new Date().toLocaleString();
-            for (const key in row) {
-                // Don't show a separate row for the timestamp itself
-                if (key.toLowerCase() !== 'timestamp') {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${timestamp}</td><td>${key}</td><td>${row[key]}</td>`;
-                    // Add new rows to the top of the table
-                    tableBody.prepend(tr);
-                }
-            }
-        }
-    </script>
-
+    <script src="/assets/js/export.js"></script>
 </body>
 </html>
