@@ -1,5 +1,5 @@
 async function init() {
-    const response = await fetch('../assets/js/config.json');
+    const response = await fetch('/assets/js/config.json');
     const config = await response.json();
     const exportConfig = config.export_page;
 
@@ -14,31 +14,12 @@ async function init() {
 
     const client = mqtt.connect(`${options.protocol}://${options.host}:${options.port}${options.path}`, options);
 
-    const statusElement = document.getElementById('status');
-
     client.on('connect', function () {
-        statusElement.textContent = 'Connected to MQTT broker! Subscribing to topic...';
-        console.log('Connected');
         client.subscribe(exportConfig.topic, function (err) {
             if (!err) {
-                statusElement.textContent = `Successfully subscribed to ${exportConfig.topic}`;
-                console.log(`Subscribed to ${exportConfig.topic}`);
-            } else {
-                statusElement.textContent = `Subscription failed.`;
+                console.log(`${exportConfig.topic}`);
             }
         });
-    });
-
-    client.on('reconnect', function () {
-        statusElement.textContent = 'Attempting to reconnect to MQTT broker...';
-    });
-
-    client.on('error', function (error) {
-        statusElement.textContent = 'Connection failed. Trying to reconnect...';
-    });
-
-    client.on('close', function () {
-        statusElement.textContent = 'Connection closed. Check if the MQTT broker is running.';
     });
 
     client.on('message', function (topic, message) {
