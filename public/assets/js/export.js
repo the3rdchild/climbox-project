@@ -17,7 +17,6 @@ async function init() {
     client.on('connect', function () {
         client.subscribe(exportConfig.topic, function (err) {
             if (!err) {
-                console.log(`${exportConfig.topic}`);
             }
         });
     });
