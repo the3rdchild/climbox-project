@@ -2,21 +2,21 @@
   { 
     "locationId": "Climbox1", 
     "name": "Climbox1", 
-    "coord": [-8.525, 119.501], 
+    "coord": [-5.981319, 105.989100], 
     "country": "Indonesia", 
     "sheetId":"1bHejKcwEWU-q760UAeaM-1a0niq4IYpu4VgopLRTc38" 
   },
   { 
     "locationId": "Climbox2", 
     "name": "Climbox2", 
-    "coord": [-8.525, 122.501],  
+    "coord": [-5.936339, 108.381264],  
     "country": "Indonesia", 
     "sheetId":"18whYdsc7nl4fay1e_KWOxc4JO1AHxV_m5Sr-kva_pQQ"
   },
   { 
     "locationId": "Climbox3", 
     "name": "Climbox3", 
-    "coord": [-9.025, 115.501], 
+    "coord": [-5.981319, 105.989100], 
     "country": "Indonesia",  
     "sheetId":"1ZwP9s9nKYyeLQRrPl-qoaxU2ovc9mzqJErRV23qCGhs"
   }
